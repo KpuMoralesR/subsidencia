@@ -1,18 +1,49 @@
 # Guía de Desarrollo: Creación de Nuevos Módulos
 
-## Introducción
-Esta guía documenta el proceso completo para añadir nuevos módulos funcionales al sistema BaseDR. Utilizaremos el módulo "Hola Mundo" como ejemplo de referencia.
-
-## Arquitectura de un Módulo
-Un módulo completo en BaseDR consta de tres capas:
-
-1. **Base de Datos**: Registro del módulo para el sistema RBAC
-2. **Backend (API)**: Endpoint que procesa la lógica de negocio
-3. **Frontend (UI)**: Interfaz de usuario que consume el API
+**Proyecto:** BaseDR  
+**Versión:** 1.0.0  
+**Fecha:** 21/01/2026
 
 ---
 
-## Paso 1: Crear el Registro del Módulo (Base de Datos)
+## 📋 Introducción
+
+Esta guía documenta el proceso completo para añadir nuevos módulos funcionales al sistema BaseDR. El sistema utiliza **ViewSets de Django REST Framework** para implementar operaciones CRUD de forma eficiente y consistente.
+
+### Arquitectura de un Módulo
+
+Un módulo completo en BaseDR consta de **cuatro capas**:
+
+1. **Base de Datos**: Registro del módulo para el sistema RBAC
+2. **Modelo**: Definición de la estructura de datos (si aplica)
+3. **Backend (API)**: ViewSet que implementa la lógica de negocio
+4. **Frontend (UI)**: Interfaz de usuario que consume el API
+
+---
+
+## 🎯 Tipos de ViewSets en BaseDR
+
+### 1. **ModelViewSet** (CRUD Completo)
+
+Proporciona automáticamente las 5 operaciones CRUD:
+- `list()` - GET `/api/recurso/` - Listar todos
+- `create()` - POST `/api/recurso/` - Crear nuevo
+- `retrieve()` - GET `/api/recurso/{id}/` - Obtener uno
+- `update()` - PUT `/api/recurso/{id}/` - Actualizar completo
+- `partial_update()` - PATCH `/api/recurso/{id}/` - Actualizar parcial
+- `destroy()` - DELETE `/api/recurso/{id}/` - Eliminar
+
+**Ejemplo del proyecto**: `UserViewSet`, `RoleViewSet`, `ModuleViewSet`
+
+### 2. **ViewSet** (Operaciones Personalizadas)
+
+Para endpoints que no requieren CRUD completo o tienen lógica personalizada.
+
+**Ejemplo del proyecto**: `HelloViewSet`
+
+---
+
+## 📝 Paso 1: Crear el Registro del Módulo (Base de Datos)
 
 ### Objetivo
 Registrar el nuevo módulo en la base de datos para que el sistema de permisos lo reconozca.
@@ -21,18 +52,21 @@ Registrar el nuevo módulo en la base de datos para que el sistema de permisos l
 Utiliza el script `backend/create_module.py` que acepta parámetros por línea de comandos.
 
 ### Comando
+
 ```bash
-python backend/create_module.py --code HELLO --name "Hola Mundo" --desc "Módulo de prueba API"
+python backend/create_module.py --code PRODUCTOS --name "Productos" --desc "Gestión de productos del inventario"
 ```
 
 ### Parámetros
-- `--code`: Código único del módulo (MAYÚSCULAS, ej. `HELLO`, `REPORTS`)
+
+- `--code`: Código único del módulo (MAYÚSCULAS, ej. `PRODUCTOS`, `VENTAS`)
 - `--name`: Nombre visible del módulo
 - `--desc`: Descripción opcional
 
 ### Resultado Esperado
+
 ```
-✅ Módulo 'Hola Mundo' (HELLO) creado exitosamente.
+✅ Módulo 'Productos' (PRODUCTOS) creado exitosamente.
 ✅ Módulo asignado al rol 'Superadmin'.
 ```
 
@@ -41,285 +75,845 @@ python backend/create_module.py --code HELLO --name "Hola Mundo" --desc "Módulo
 
 ---
 
-## Paso 2: Crear el Endpoint Backend (API)
+## 🗄️ Paso 2: Crear el Modelo (Si Aplica)
 
-### 2.1. Definir la Vista
+Si tu módulo requiere almacenar datos, define el modelo en `backend/core/models.py`.
 
-**Archivo**: `backend/core/views.py`
+### Ejemplo: Modelo de Productos
 
-Añade una nueva clase de vista al final del archivo:
+**Archivo**: `backend/core/models.py`
 
 ```python
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .permissions import HasModuleAccess
+from django.db import models
 
-class HelloView(APIView):
-    permission_classes = [HasModuleAccess]
-    required_module_code = 'HELLO'  # Debe coincidir con el código en BD
-
-    def get(self, request):
-        return Response({"message": "Hola desde el Backend BaseDR!"})
-```
-
-#### Opciones de Vista
-
-**APIView** (Simple, para endpoints únicos):
-```python
-class MiView(APIView):
-    permission_classes = [HasModuleAccess]
-    required_module_code = 'MI_MODULO'
+class Producto(models.Model):
+    """Modelo para gestión de productos del inventario."""
     
-    def get(self, request):
-        return Response({"data": "..."})
+    nombre = models.CharField(max_length=200, verbose_name="Nombre del Producto")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
+    stock = models.IntegerField(default=0, verbose_name="Stock Disponible")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
-    def post(self, request):
-        return Response({"status": "created"})
+    class Meta:
+        verbose_name = "Producto"
+        verbose_name_plural = "Productos"
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return self.nombre
 ```
 
-**ModelViewSet** (CRUD completo):
-```python
-class MiViewSet(viewsets.ModelViewSet):
-    queryset = MiModelo.objects.all()
-    serializer_class = MiSerializer
-    permission_classes = [HasModuleAccess]
-    required_module_code = 'MI_MODULO'
+### Crear y Aplicar Migraciones
+
+```bash
+cd backend
+python manage.py makemigrations
+python manage.py migrate
 ```
-
-### 2.2. Registrar la Ruta
-
-**Archivo**: `backend/core/urls.py`
-
-#### Para APIView:
-```python
-from .views import HelloView
-
-urlpatterns = [
-    path('', include(router.urls)),
-    path('hello/', HelloView.as_view(), name='hello'),
-]
-```
-
-#### Para ViewSet:
-```python
-from .views import MiViewSet
-
-router.register(r'mi-recurso', MiViewSet)
-```
-
-> [!WARNING]
-> **APIView** usa `path()` con `.as_view()`.  
-> **ViewSet** usa `router.register()`.  
-> No mezcles estos métodos o Django lanzará errores.
 
 ---
 
-## Paso 3: Crear la Interfaz Frontend (UI)
+## 🔧 Paso 3: Crear el Serializer
 
-### 3.1. Crear el Componente de Página
+Los serializers convierten los modelos Django a JSON y viceversa.
 
-**Archivo**: `frontend/src/pages/Hello.jsx`
+**Archivo**: `backend/core/serializers.py`
+
+```python
+from rest_framework import serializers
+from .models import Producto
+
+class ProductoSerializer(serializers.ModelSerializer):
+    """Serializer para el modelo Producto."""
+    
+    class Meta:
+        model = Producto
+        fields = [
+            'id',
+            'nombre',
+            'descripcion',
+            'precio',
+            'stock',
+            'activo',
+            'fecha_creacion',
+            'fecha_actualizacion'
+        ]
+        read_only_fields = ['id', 'fecha_creacion', 'fecha_actualizacion']
+    
+    def validate_precio(self, value):
+        """Validar que el precio sea positivo."""
+        if value < 0:
+            raise serializers.ValidationError("El precio no puede ser negativo.")
+        return value
+    
+    def validate_stock(self, value):
+        """Validar que el stock no sea negativo."""
+        if value < 0:
+            raise serializers.ValidationError("El stock no puede ser negativo.")
+        return value
+```
+
+### Serializer con Relaciones
+
+Si tu modelo tiene relaciones con otros modelos:
+
+```python
+class ProductoDetalladoSerializer(serializers.ModelSerializer):
+    """Serializer con información detallada y relaciones."""
+    
+    categoria_nombre = serializers.CharField(source='categoria.nombre', read_only=True)
+    proveedor_info = ProveedorSerializer(source='proveedor', read_only=True)
+    
+    class Meta:
+        model = Producto
+        fields = '__all__'
+```
+
+---
+
+## 🚀 Paso 4: Crear el ViewSet (Backend API)
+
+### 4.1. ModelViewSet - CRUD Completo
+
+**Archivo**: `backend/core/views.py`
+
+```python
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Producto
+from .serializers import ProductoSerializer
+from .permissions import HasModuleAccess
+
+class ProductoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestión completa de productos.
+    
+    Proporciona operaciones CRUD:
+    - list: GET /api/productos/
+    - create: POST /api/productos/
+    - retrieve: GET /api/productos/{id}/
+    - update: PUT /api/productos/{id}/
+    - partial_update: PATCH /api/productos/{id}/
+    - destroy: DELETE /api/productos/{id}/
+    """
+    
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+    permission_classes = [HasModuleAccess]
+    required_module_code = 'PRODUCTOS'  # Debe coincidir con el código en BD
+    
+    def get_queryset(self):
+        """
+        Personalizar el queryset según parámetros de búsqueda.
+        """
+        queryset = super().get_queryset()
+        
+        # Filtrar por activos
+        activo = self.request.query_params.get('activo', None)
+        if activo is not None:
+            queryset = queryset.filter(activo=activo.lower() == 'true')
+        
+        # Búsqueda por nombre
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(nombre__icontains=search)
+        
+        return queryset
+    
+    def perform_create(self, serializer):
+        """
+        Lógica adicional al crear un producto.
+        """
+        # Puedes agregar lógica personalizada aquí
+        serializer.save()
+    
+    def perform_update(self, serializer):
+        """
+        Lógica adicional al actualizar un producto.
+        """
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        """
+        Lógica adicional al eliminar un producto.
+        Soft delete en lugar de eliminación física.
+        """
+        instance.activo = False
+        instance.save()
+        # O para eliminación física:
+        # instance.delete()
+    
+    @action(detail=True, methods=['post'])
+    def activar(self, request, pk=None):
+        """
+        Acción personalizada: POST /api/productos/{id}/activar/
+        Activa un producto desactivado.
+        """
+        producto = self.get_object()
+        producto.activo = True
+        producto.save()
+        serializer = self.get_serializer(producto)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def desactivar(self, request, pk=None):
+        """
+        Acción personalizada: POST /api/productos/{id}/desactivar/
+        Desactiva un producto.
+        """
+        producto = self.get_object()
+        producto.activo = False
+        producto.save()
+        serializer = self.get_serializer(producto)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def bajo_stock(self, request):
+        """
+        Acción personalizada: GET /api/productos/bajo_stock/
+        Retorna productos con stock menor a 10 unidades.
+        """
+        productos = self.queryset.filter(stock__lt=10, activo=True)
+        serializer = self.get_serializer(productos, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def estadisticas(self, request):
+        """
+        Acción personalizada: GET /api/productos/estadisticas/
+        Retorna estadísticas generales de productos.
+        """
+        total = self.queryset.count()
+        activos = self.queryset.filter(activo=True).count()
+        bajo_stock = self.queryset.filter(stock__lt=10, activo=True).count()
+        
+        return Response({
+            'total_productos': total,
+            'productos_activos': activos,
+            'productos_bajo_stock': bajo_stock
+        })
+```
+
+### 4.2. ViewSet Simple - Sin Modelo
+
+Para endpoints que no requieren CRUD completo:
+
+```python
+from rest_framework import viewsets
+from rest_framework.response import Response
+from .permissions import HasModuleAccess
+
+class ReportesViewSet(viewsets.ViewSet):
+    """
+    ViewSet para generación de reportes.
+    No está vinculado a un modelo específico.
+    """
+    
+    permission_classes = [HasModuleAccess]
+    required_module_code = 'REPORTES'
+    
+    def list(self, request):
+        """
+        GET /api/reportes/
+        Lista los tipos de reportes disponibles.
+        """
+        reportes_disponibles = [
+            {'id': 1, 'nombre': 'Reporte de Ventas', 'tipo': 'ventas'},
+            {'id': 2, 'nombre': 'Reporte de Inventario', 'tipo': 'inventario'},
+            {'id': 3, 'nombre': 'Reporte de Usuarios', 'tipo': 'usuarios'},
+        ]
+        return Response(reportes_disponibles)
+    
+    def retrieve(self, request, pk=None):
+        """
+        GET /api/reportes/{id}/
+        Genera un reporte específico.
+        """
+        # Lógica para generar el reporte
+        reporte_data = {
+            'id': pk,
+            'fecha_generacion': '2026-01-21',
+            'datos': [...]
+        }
+        return Response(reporte_data)
+    
+    @action(detail=False, methods=['post'])
+    def generar(self, request):
+        """
+        POST /api/reportes/generar/
+        Genera un reporte personalizado con parámetros.
+        """
+        tipo = request.data.get('tipo')
+        fecha_inicio = request.data.get('fecha_inicio')
+        fecha_fin = request.data.get('fecha_fin')
+        
+        # Lógica de generación de reporte
+        reporte = {
+            'tipo': tipo,
+            'periodo': f"{fecha_inicio} - {fecha_fin}",
+            'datos': [...]
+        }
+        
+        return Response(reporte, status=status.HTTP_201_CREATED)
+```
+
+---
+
+## 🔗 Paso 5: Registrar las Rutas
+
+**Archivo**: `backend/core/urls.py`
+
+```python
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    UserViewSet,
+    RoleViewSet,
+    ModuleViewSet,
+    ProductoViewSet,
+    ReportesViewSet,
+    HelloViewSet
+)
+
+# Crear el router
+router = DefaultRouter()
+
+# Registrar ViewSets
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'roles', RoleViewSet, basename='role')
+router.register(r'modules', ModuleViewSet, basename='module')
+router.register(r'productos', ProductoViewSet, basename='producto')
+router.register(r'reportes', ReportesViewSet, basename='reporte')
+router.register(r'hello', HelloViewSet, basename='hello')
+
+urlpatterns = [
+    path('', include(router.urls)),
+]
+```
+
+### URLs Generadas Automáticamente
+
+Para `ProductoViewSet`:
+
+```
+GET    /api/productos/              - Listar todos los productos
+POST   /api/productos/              - Crear nuevo producto
+GET    /api/productos/{id}/         - Obtener un producto
+PUT    /api/productos/{id}/         - Actualizar producto completo
+PATCH  /api/productos/{id}/         - Actualizar producto parcial
+DELETE /api/productos/{id}/         - Eliminar producto
+
+# Acciones personalizadas
+POST   /api/productos/{id}/activar/     - Activar producto
+POST   /api/productos/{id}/desactivar/  - Desactivar producto
+GET    /api/productos/bajo_stock/       - Productos con bajo stock
+GET    /api/productos/estadisticas/     - Estadísticas generales
+```
+
+---
+
+## 🎨 Paso 6: Crear la Interfaz Frontend
+
+### 6.1. Crear el Componente de Página
+
+**Archivo**: `frontend/src/pages/Productos.jsx`
 
 ```javascript
 import { useEffect, useState } from 'react';
-import api from '../context/AuthContext';
+import { Plus, Edit, Trash2, Search, Package } from 'lucide-react';
+import api from '../services/api';
 
-const Hello = () => {
-    const [message, setMessage] = useState('Cargando...');
+const Productos = () => {
+    const [productos, setProductos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [editingProducto, setEditingProducto] = useState(null);
+    const [formData, setFormData] = useState({
+        nombre: '',
+        descripcion: '',
+        precio: '',
+        stock: '',
+        activo: true
+    });
 
+    // Cargar productos al montar el componente
     useEffect(() => {
-        api.get('/hello/')
-            .then(res => setMessage(res.data.message))
-            .catch(err => setMessage('Error al cargar mensaje.'));
+        fetchProductos();
     }, []);
+
+    // Función para obtener todos los productos
+    const fetchProductos = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/productos/');
+            setProductos(response.data);
+            setError(null);
+        } catch (err) {
+            setError('Error al cargar los productos');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Función para buscar productos
+    const handleSearch = async (e) => {
+        const term = e.target.value;
+        setSearchTerm(term);
+        
+        try {
+            const response = await api.get(`/productos/?search=${term}`);
+            setProductos(response.data);
+        } catch (err) {
+            console.error('Error al buscar:', err);
+        }
+    };
+
+    // Función para crear nuevo producto
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        
+        try {
+            const response = await api.post('/productos/', formData);
+            setProductos([...productos, response.data]);
+            setShowModal(false);
+            resetForm();
+        } catch (err) {
+            alert('Error al crear producto');
+            console.error(err);
+        }
+    };
+
+    // Función para actualizar producto
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        
+        try {
+            const response = await api.put(`/productos/${editingProducto.id}/`, formData);
+            setProductos(productos.map(p => 
+                p.id === editingProducto.id ? response.data : p
+            ));
+            setShowModal(false);
+            resetForm();
+        } catch (err) {
+            alert('Error al actualizar producto');
+            console.error(err);
+        }
+    };
+
+    // Función para eliminar producto
+    const handleDelete = async (id) => {
+        if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+        
+        try {
+            await api.delete(`/productos/${id}/`);
+            setProductos(productos.filter(p => p.id !== id));
+        } catch (err) {
+            alert('Error al eliminar producto');
+            console.error(err);
+        }
+    };
+
+    // Función para activar/desactivar producto
+    const toggleActivo = async (producto) => {
+        try {
+            const endpoint = producto.activo ? 'desactivar' : 'activar';
+            const response = await api.post(`/productos/${producto.id}/${endpoint}/`);
+            setProductos(productos.map(p => 
+                p.id === producto.id ? response.data : p
+            ));
+        } catch (err) {
+            alert('Error al cambiar estado del producto');
+            console.error(err);
+        }
+    };
+
+    // Funciones auxiliares
+    const openCreateModal = () => {
+        resetForm();
+        setEditingProducto(null);
+        setShowModal(true);
+    };
+
+    const openEditModal = (producto) => {
+        setFormData({
+            nombre: producto.nombre,
+            descripcion: producto.descripcion,
+            precio: producto.precio,
+            stock: producto.stock,
+            activo: producto.activo
+        });
+        setEditingProducto(producto);
+        setShowModal(true);
+    };
+
+    const resetForm = () => {
+        setFormData({
+            nombre: '',
+            descripcion: '',
+            precio: '',
+            stock: '',
+            activo: true
+        });
+        setEditingProducto(null);
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-xl">Cargando productos...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Módulo de Prueba</h1>
-            <div className="p-4 bg-white rounded shadow">
-                <p className="text-lg text-gray-700">{message}</p>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                        <Package className="w-8 h-8" />
+                        Gestión de Productos
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        Administra el inventario de productos
+                    </p>
+                </div>
+                <button
+                    onClick={openCreateModal}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+                >
+                    <Plus className="w-5 h-5" />
+                    Nuevo Producto
+                </button>
             </div>
+
+            {/* Barra de búsqueda */}
+            <div className="mb-6">
+                <div className="relative">
+                    <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                    <input
+                        type="text"
+                        placeholder="Buscar productos..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+            </div>
+
+            {/* Tabla de productos */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nombre
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Descripción
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Precio
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Stock
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {productos.map((producto) => (
+                            <tr key={producto.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {producto.nombre}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="text-sm text-gray-500">
+                                        {producto.descripcion || 'Sin descripción'}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-900">
+                                        ${parseFloat(producto.precio).toFixed(2)}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className={`text-sm font-medium ${
+                                        producto.stock < 10 ? 'text-red-600' : 'text-gray-900'
+                                    }`}>
+                                        {producto.stock} unidades
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        producto.activo 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {producto.activo ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button
+                                        onClick={() => openEditModal(producto)}
+                                        className="text-blue-600 hover:text-blue-900 mr-3"
+                                    >
+                                        <Edit className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(producto.id)}
+                                        className="text-red-600 hover:text-red-900"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Modal de Crear/Editar */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                        <h2 className="text-2xl font-bold mb-4">
+                            {editingProducto ? 'Editar Producto' : 'Nuevo Producto'}
+                        </h2>
+                        <form onSubmit={editingProducto ? handleUpdate : handleCreate}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Nombre</label>
+                                <input
+                                    type="text"
+                                    value={formData.nombre}
+                                    onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Descripción</label>
+                                <textarea
+                                    value={formData.descripcion}
+                                    onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows="3"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Precio</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.precio}
+                                    onChange={(e) => setFormData({...formData, precio: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Stock</label>
+                                <input
+                                    type="number"
+                                    value={formData.stock}
+                                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-6">
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.activo}
+                                        onChange={(e) => setFormData({...formData, activo: e.target.checked})}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-gray-700">Activo</span>
+                                </label>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition"
+                                >
+                                    {editingProducto ? 'Actualizar' : 'Crear'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg transition"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-export default Hello;
+export default Productos;
 ```
 
-#### Patrón Recomendado
-- **useState**: Para manejar el estado de los datos
-- **useEffect**: Para cargar datos al montar el componente
-- **api.get/post**: Cliente axios configurado con autenticación JWT
-
-### 3.2. Registrar la Ruta
+### 6.2. Registrar la Ruta
 
 **Archivo**: `frontend/src/App.jsx`
 
 ```javascript
-import Hello from './pages/Hello';
+import Productos from './pages/Productos';
 
-// Dentro del componente App, en las rutas protegidas:
-<Route path="/dashboard" element={<ProtectedRoute />}>
-    <Route index element={<Dashboard />} />
+// Dentro de las rutas protegidas:
+<Route element={<ProtectedRoute />}>
+    <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/users" element={<Users />} />
+    <Route path="/roles" element={<Roles />} />
+    <Route path="/productos" element={<Productos />} />
     {/* ... otras rutas ... */}
-    <Route path="/hello" element={<Hello />} />
 </Route>
 ```
 
-### 3.3. Añadir al Menú Lateral
+### 6.3. Añadir al Menú Lateral
 
 **Archivo**: `frontend/src/components/layout/Sidebar.jsx`
 
 ```javascript
-import { Hand } from 'lucide-react';
+import { Package } from 'lucide-react';
 
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', code: 'DASHBOARD' },
+    { name: 'Usuarios', icon: Users, path: '/users', code: 'USERS' },
+    { name: 'Roles', icon: Shield, path: '/roles', code: 'ROLES' },
+    { name: 'Productos', icon: Package, path: '/productos', code: 'PRODUCTOS' },
     // ... otros items ...
-    { name: 'Hola', icon: Hand, path: '/hello', code: 'HELLO' },
 ];
 ```
 
-#### Propiedades del Item
-- `name`: Texto visible en el menú
-- `icon`: Componente de icono de `lucide-react`
-- `path`: Ruta de navegación (debe coincidir con App.jsx)
-- `code`: Código del módulo (RBAC automático)
+---
 
-> [!NOTE]
-> El sidebar filtra automáticamente los items según los permisos del usuario. Si el usuario no tiene el módulo `HELLO`, el item no se mostrará.
+## ✅ Checklist de Creación de Módulo CRUD Completo
+
+### Base de Datos
+- [ ] Ejecutar `create_module.py` con código en MAYÚSCULAS
+- [ ] Verificar que el módulo se asignó a Superadmin
+
+### Backend
+- [ ] Crear modelo en `models.py` (si aplica)
+- [ ] Ejecutar `makemigrations` y `migrate`
+- [ ] Crear serializer en `serializers.py`
+- [ ] Crear ViewSet en `views.py` con `HasModuleAccess`
+- [ ] Definir `required_module_code` (MAYÚSCULAS)
+- [ ] Registrar en router en `urls.py`
+- [ ] Probar endpoints con Postman/curl
+
+### Frontend
+- [ ] Crear componente en `src/pages/`
+- [ ] Implementar operaciones CRUD con `api`
+- [ ] Registrar ruta en `App.jsx`
+- [ ] Añadir item al sidebar con código correcto
+- [ ] Importar icono de `lucide-react`
+- [ ] Probar UI como admin
+- [ ] Verificar RBAC con usuario limitado
 
 ---
 
-## Paso 4: Verificación
+## 🧪 Verificación y Pruebas
 
-### 4.1. Backend
-Prueba el endpoint con curl o Postman:
+### Probar Backend con curl
 
 ```bash
-# Obtener token
+# 1. Obtener token
 TOKEN=$(curl -X POST http://localhost:8000/api/token/ \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "admin123"}' \
   | jq -r '.access')
 
-# Probar endpoint
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/hello/
+# 2. Listar productos
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/productos/
+
+# 3. Crear producto
+curl -X POST http://localhost:8000/api/productos/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Laptop Dell",
+    "descripcion": "Laptop empresarial",
+    "precio": 15000.00,
+    "stock": 5,
+    "activo": true
+  }'
+
+# 4. Obtener producto específico
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8000/api/productos/1/
+
+# 5. Actualizar producto
+curl -X PATCH http://localhost:8000/api/productos/1/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"stock": 10}'
+
+# 6. Eliminar producto
+curl -X DELETE http://localhost:8000/api/productos/1/ \
+  -H "Authorization: Bearer $TOKEN"
+
+# 7. Acción personalizada
+curl -X POST http://localhost:8000/api/productos/1/activar/ \
+  -H "Authorization: Bearer $TOKEN"
 ```
-
-**Respuesta esperada**:
-```json
-{"message": "Hola desde el Backend BaseDR!"}
-```
-
-### 4.2. Frontend
-1. Inicia sesión como `admin`
-2. Verifica que aparece "Hola" en el sidebar
-3. Haz clic en el item
-4. Verifica que se muestra el mensaje del backend
-
-### 4.3. RBAC
-1. Crea un usuario sin el módulo `HELLO`
-2. Inicia sesión con ese usuario
-3. Verifica que **NO** aparece "Hola" en el sidebar
 
 ---
 
-## Checklist de Creación de Módulo
+## ⚠️ Errores Comunes y Soluciones
 
-- [ ] **Base de Datos**
-  - [ ] Ejecutar `create_module.py` con código en MAYÚSCULAS
-  - [ ] Verificar que el módulo se asignó a Superadmin
-  
-- [ ] **Backend**
-  - [ ] Crear vista en `views.py` con `HasModuleAccess`
-  - [ ] Definir `required_module_code` (MAYÚSCULAS)
-  - [ ] Registrar ruta en `urls.py` (path o router según tipo)
-  - [ ] Importar `APIView` si es necesario
-  
-- [ ] **Frontend**
-  - [ ] Crear componente en `src/pages/`
-  - [ ] Usar `api.get()` para consumir endpoint
-  - [ ] Registrar ruta en `App.jsx`
-  - [ ] Añadir item al sidebar con código correcto
-  - [ ] Importar icono de `lucide-react`
-  
-- [ ] **Verificación**
-  - [ ] Probar endpoint con token JWT
-  - [ ] Verificar UI como admin
-  - [ ] Verificar RBAC con usuario limitado
+### Error: `'ProductoViewSet' object has no attribute 'get_queryset'`
+**Causa**: Usaste `ViewSet` en lugar de `ModelViewSet`  
+**Solución**: Cambia a `ModelViewSet` o implementa manualmente los métodos
 
----
-
-## Errores Comunes
-
-### `NameError: name 'APIView' is not defined`
-**Causa**: Falta import en `views.py`  
-**Solución**: Añadir `from rest_framework.views import APIView`
-
-### `'HelloView' object has no attribute 'get_queryset'`
-**Causa**: Intentaste usar `router.register()` con una `APIView`  
-**Solución**: Usa `path('hello/', HelloView.as_view())` en su lugar
+### Error: `ImproperlyConfigured: basename argument not specified`
+**Causa**: Falta el parámetro `basename` en `router.register()`  
+**Solución**: Agrega `basename='producto'` al registrar
 
 ### Error 403 Forbidden
-**Causa**: Discrepancia de mayúsculas/minúsculas en código de módulo  
-**Solución**: Verifica que `required_module_code` coincida exactamente con el código en BD (MAYÚSCULAS)
+**Causa**: Discrepancia en código de módulo o usuario sin permisos  
+**Solución**: Verifica que `required_module_code` coincida con BD (MAYÚSCULAS)
+
+### Error: `Producto matching query does not exist`
+**Causa**: Intentas acceder a un ID que no existe  
+**Solución**: Verifica que el producto existe antes de acceder
 
 ### El item no aparece en el sidebar
-**Causa**: El usuario no tiene el módulo asignado  
-**Solución**: Asigna el módulo al rol del usuario desde la UI de Roles
+**Causa**: Usuario no tiene el módulo asignado  
+**Solución**: Asigna el módulo al rol del usuario desde UI de Roles
 
 ---
 
-## Ejemplo Completo: Módulo de Reportes
+## 📚 Recursos Adicionales
 
-### 1. Base de Datos
-```bash
-python backend/create_module.py --code REPORTS --name "Reportes" --desc "Generación de reportes del sistema"
-```
-
-### 2. Backend
-```python
-# views.py
-class ReportView(APIView):
-    permission_classes = [HasModuleAccess]
-    required_module_code = 'REPORTS'
-    
-    def get(self, request):
-        # Lógica de generación de reportes
-        return Response({"reports": [...]})
-
-# urls.py
-path('reports/', ReportView.as_view(), name='reports'),
-```
-
-### 3. Frontend
-```javascript
-// src/pages/Reports.jsx
-import { FileBarChart } from 'lucide-react';
-
-const Reports = () => {
-    const [reports, setReports] = useState([]);
-    
-    useEffect(() => {
-        api.get('/reports/').then(res => setReports(res.data.reports));
-    }, []);
-    
-    return <div>{/* UI de reportes */}</div>;
-};
-
-// App.jsx
-<Route path="/reports" element={<Reports />} />
-
-// Sidebar.jsx
-{ name: 'Reportes', icon: FileBarChart, path: '/reports', code: 'REPORTS' }
-```
+- **Django REST Framework ViewSets**: https://www.django-rest-framework.org/api-guide/viewsets/
+- **Django REST Framework Routers**: https://www.django-rest-framework.org/api-guide/routers/
+- **Django REST Framework Serializers**: https://www.django-rest-framework.org/api-guide/serializers/
+- **Iconos Lucide React**: https://lucide.dev/icons/
+- **React Hooks**: https://react.dev/reference/react
 
 ---
 
-## Recursos Adicionales
-
-- **Iconos**: [Lucide React Icons](https://lucide.dev/icons/)
-- **Django REST Framework**: [Documentación Oficial](https://www.django-rest-framework.org/)
-- **React Hooks**: [useEffect](https://react.dev/reference/react/useEffect)
+**Última actualización:** 21/01/2026  
+**Versión:** 2.0.0
