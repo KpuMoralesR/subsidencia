@@ -21,6 +21,230 @@ Un módulo completo en BaseDR consta de **cuatro capas**:
 
 ---
 
+## 🎓 Entendiendo los Endpoints - Explicación para Principiantes
+
+### ¿Qué es un Endpoint?
+
+Un **endpoint** es como una "dirección web" a la que tu aplicación puede enviar peticiones para hacer cosas. Es como tocar diferentes botones en un control remoto: cada botón hace algo diferente.
+
+### Ejemplo Práctico: Sistema de Productos
+
+Imagina que tienes una tienda y quieres gestionar tus productos (laptops, celulares, etc.). Necesitas poder:
+- 📋 Ver todos tus productos
+- ➕ Agregar un producto nuevo
+- 👁️ Ver los detalles de un producto específico
+- ✏️ Modificar un producto
+- 🗑️ Eliminar un producto
+
+### Los 5 Endpoints Básicos (CRUD)
+
+Cuando creas un **ProductoViewSet**, automáticamente obtienes estos 5 endpoints:
+
+#### 1️⃣ **Listar Todos** - `GET /api/productos/`
+```
+¿Qué hace? → Muestra TODOS los productos de tu tienda
+¿Cuándo usarlo? → Cuando quieres ver la lista completa
+
+Ejemplo en la vida real:
+- Entras a tu tienda y quieres ver TODO lo que tienes en inventario
+
+Respuesta que recibes:
+[
+  {"id": 1, "nombre": "Laptop Dell", "precio": 15000, "stock": 5},
+  {"id": 2, "nombre": "iPhone 15", "precio": 20000, "stock": 3},
+  {"id": 3, "nombre": "Mouse Logitech", "precio": 500, "stock": 20}
+]
+```
+
+#### 2️⃣ **Crear Nuevo** - `POST /api/productos/`
+```
+¿Qué hace? → Agrega UN producto nuevo a tu tienda
+¿Cuándo usarlo? → Cuando compras mercancía nueva y quieres registrarla
+
+Ejemplo en la vida real:
+- Compraste 10 teclados nuevos y quieres agregarlos al sistema
+
+Lo que envías:
+{
+  "nombre": "Teclado Mecánico",
+  "precio": 1200,
+  "stock": 10
+}
+
+Respuesta que recibes:
+{
+  "id": 4,  ← El sistema le asigna un ID automáticamente
+  "nombre": "Teclado Mecánico",
+  "precio": 1200,
+  "stock": 10
+}
+```
+
+#### 3️⃣ **Ver Uno Específico** - `GET /api/productos/2/`
+```
+¿Qué hace? → Muestra los detalles de UN producto específico
+¿Cuándo usarlo? → Cuando quieres ver la información completa de un producto
+
+Ejemplo en la vida real:
+- Un cliente pregunta por el iPhone 15 (que tiene ID 2)
+
+Respuesta que recibes:
+{
+  "id": 2,
+  "nombre": "iPhone 15",
+  "descripcion": "Smartphone última generación",
+  "precio": 20000,
+  "stock": 3,
+  "activo": true
+}
+```
+
+#### 4️⃣ **Actualizar** - `PUT /api/productos/2/` o `PATCH /api/productos/2/`
+```
+¿Qué hace? → Modifica la información de UN producto
+¿Cuándo usarlo? → Cuando cambias el precio, agregas stock, etc.
+
+Ejemplo en la vida real:
+- Vendiste 2 iPhones, ahora solo te quedan 1
+
+Lo que envías (PATCH - solo lo que cambió):
+{
+  "stock": 1
+}
+
+Respuesta que recibes:
+{
+  "id": 2,
+  "nombre": "iPhone 15",
+  "precio": 20000,
+  "stock": 1  ← Actualizado!
+}
+
+Diferencia PUT vs PATCH:
+- PUT → Tienes que enviar TODA la información del producto
+- PATCH → Solo envías lo que quieres cambiar (más común)
+```
+
+#### 5️⃣ **Eliminar** - `DELETE /api/productos/3/`
+```
+¿Qué hace? → Elimina UN producto de tu sistema
+¿Cuándo usarlo? → Cuando ya no vendes ese producto
+
+Ejemplo en la vida real:
+- Ya no vas a vender más Mouse Logitech (ID 3)
+
+Respuesta que recibes:
+(Nada, solo un código 204 que significa "eliminado exitosamente")
+```
+
+---
+
+### 🔍 Búsquedas y Filtros (Query Parameters)
+
+Además de los 5 básicos, puedes agregar **filtros** a tus búsquedas usando `?` en la URL:
+
+#### Buscar por Nombre
+```
+GET /api/productos/?search=laptop
+
+¿Qué hace? → Busca todos los productos que tengan "laptop" en el nombre
+
+Ejemplo en la vida real:
+- Un cliente pregunta "¿Qué laptops tienes?"
+
+Respuesta:
+[
+  {"id": 1, "nombre": "Laptop Dell", "precio": 15000},
+  {"id": 5, "nombre": "Laptop HP", "precio": 12000}
+]
+```
+
+#### Filtrar por Estado
+```
+GET /api/productos/?activo=true
+
+¿Qué hace? → Muestra solo los productos activos (que todavía vendes)
+
+Ejemplo en la vida real:
+- Quieres ver solo los productos disponibles para venta
+```
+
+#### Combinar Filtros
+```
+GET /api/productos/?search=laptop&activo=true
+
+¿Qué hace? → Busca laptops que estén activas
+
+Puedes combinar varios filtros con &
+```
+
+---
+
+### ⚡ Acciones Personalizadas (Extras)
+
+Además de los 5 básicos, puedes crear **acciones especiales**:
+
+#### Acción en UN Producto Específico
+```
+POST /api/productos/2/activar/
+
+¿Qué hace? → Activa el producto con ID 2
+¿Cuándo usarlo? → Cuando vuelves a vender un producto que habías desactivado
+
+Ejemplo en la vida real:
+- Habías dejado de vender iPhone 15, pero ahora volviste a tener stock
+```
+
+#### Acción en TODOS los Productos
+```
+GET /api/productos/bajo_stock/
+
+¿Qué hace? → Muestra productos con poco stock (menos de 10)
+¿Cuándo usarlo? → Para saber qué necesitas comprar
+
+Respuesta:
+[
+  {"id": 2, "nombre": "iPhone 15", "stock": 1},
+  {"id": 6, "nombre": "Audífonos", "stock": 3}
+]
+```
+
+---
+
+### 📊 Resumen Visual
+
+```
+Tu Tienda de Productos
+│
+├─ GET /api/productos/              → 📋 Ver TODOS los productos
+├─ POST /api/productos/             → ➕ Agregar producto nuevo
+├─ GET /api/productos/2/            → 👁️ Ver producto #2
+├─ PATCH /api/productos/2/          → ✏️ Modificar producto #2
+├─ DELETE /api/productos/2/         → 🗑️ Eliminar producto #2
+│
+├─ GET /api/productos/?search=laptop     → 🔍 Buscar "laptop"
+├─ GET /api/productos/?activo=true       → ✅ Solo activos
+│
+├─ POST /api/productos/2/activar/        → ⚡ Activar producto #2
+└─ GET /api/productos/bajo_stock/        → 📉 Productos con poco stock
+```
+
+---
+
+### 💡 Regla de Oro
+
+**¿Cómo saber qué endpoint usar?**
+
+1. **¿Quieres ver TODOS?** → `GET /api/productos/`
+2. **¿Quieres ver UNO?** → `GET /api/productos/{id}/`
+3. **¿Quieres crear?** → `POST /api/productos/`
+4. **¿Quieres modificar?** → `PATCH /api/productos/{id}/`
+5. **¿Quieres eliminar?** → `DELETE /api/productos/{id}/`
+6. **¿Quieres buscar/filtrar?** → `GET /api/productos/?search=...`
+7. **¿Quieres hacer algo especial?** → Acción personalizada
+
+---
+
 ## 🎯 Tipos de ViewSets en BaseDR
 
 ### 1. **ModelViewSet** (CRUD Completo)
@@ -209,18 +433,32 @@ class ProductoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Personalizar el queryset según parámetros de búsqueda.
-        """
-        queryset = super().get_queryset()
         
-        # Filtrar por activos
+        Este método se ejecuta AUTOMÁTICAMENTE cuando alguien hace:
+        GET /api/productos/?search=laptop&activo=true
+        
+        Los parámetros después del ? se llaman "query parameters"
+        y los puedes obtener con: self.request.query_params.get('nombre_parametro')
+        """
+        queryset = super().get_queryset()  # Obtiene TODOS los productos
+        
+        # 🔍 FILTRO 1: Por estado activo/inactivo
+        # Ejemplo: GET /api/productos/?activo=true
         activo = self.request.query_params.get('activo', None)
         if activo is not None:
             queryset = queryset.filter(activo=activo.lower() == 'true')
         
-        # Búsqueda por nombre
+        # 🔍 FILTRO 2: Búsqueda por nombre
+        # Ejemplo: GET /api/productos/?search=laptop
+        # El "icontains" busca sin importar mayúsculas/minúsculas
         search = self.request.query_params.get('search', None)
         if search:
             queryset = queryset.filter(nombre__icontains=search)
+        
+        # 💡 PUEDES AGREGAR MÁS FILTROS:
+        # precio_min = self.request.query_params.get('precio_min', None)
+        # if precio_min:
+        #     queryset = queryset.filter(precio__gte=precio_min)
         
         return queryset
     
