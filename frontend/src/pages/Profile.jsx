@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { User, Mail, Save, AlertCircle, CheckCircle } from 'lucide-react';
-import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
+    const { api } = useAuth();
     const [profile, setProfile] = useState({
         username: '',
         email: '',
@@ -46,11 +47,11 @@ const Profile = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         try {
             setSaving(true);
             setError(null);
-            
+
             // Solo enviar campos editables
             const updateData = {
                 username: profile.username,
@@ -58,11 +59,11 @@ const Profile = () => {
                 first_name: profile.first_name,
                 last_name: profile.last_name
             };
-            
+
             const response = await api.patch('/users/profile/', updateData);
             setProfile(response.data);
             setSuccess(true);
-            
+
             // Ocultar mensaje de éxito después de 3 segundos
             setTimeout(() => setSuccess(false), 3000);
         } catch (err) {
@@ -116,7 +117,7 @@ const Profile = () => {
                         <h2 className="text-xl font-semibold mb-4 text-gray-800">
                             Información Personal
                         </h2>
-                        
+
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-4">
                                 {/* Username */}
@@ -185,11 +186,10 @@ const Profile = () => {
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white transition ${
-                                            saving
+                                        className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white transition ${saving
                                                 ? 'bg-gray-400 cursor-not-allowed'
                                                 : 'bg-blue-600 hover:bg-blue-700'
-                                        }`}
+                                            }`}
                                     >
                                         <Save className="w-5 h-5" />
                                         {saving ? 'Guardando...' : 'Guardar Cambios'}
@@ -206,7 +206,7 @@ const Profile = () => {
                         <h2 className="text-xl font-semibold mb-4 text-gray-800">
                             Información del Sistema
                         </h2>
-                        
+
                         <div className="space-y-4">
                             {/* Rol */}
                             <div>

@@ -10,7 +10,24 @@ const api = axios.create({
 // Request interceptor to add JWT auth token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        // Try to get token from authTokens object first (standard for this app - used by AuthContext)
+        const storedTokens = localStorage.getItem('authTokens');
+        let token = null;
+
+        if (storedTokens) {
+            try {
+                const parsed = JSON.parse(storedTokens);
+                token = parsed.access;
+            } catch (e) {
+                console.error("Error parsing authTokens", e);
+            }
+        }
+
+        // Fallback to simple 'token' key if exists (for backwards compatibility or simple usage)
+        if (!token) {
+            token = localStorage.getItem('token');
+        }
+
         if (token) {
             // JWT authentication requires Bearer prefix
             config.headers['Authorization'] = `Bearer ${token}`;
