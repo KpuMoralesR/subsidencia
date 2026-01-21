@@ -1,93 +1,470 @@
-# baseDR
+# 🚀 BaseDR - Django + React Secure Base
 
+**BaseDR** es una plataforma base empresarial robusta y segura, diseñada como punto de partida para aplicaciones web modernas que requieren autenticación, gestión de usuarios y control de acceso basado en roles (RBAC).
 
+---
 
-## Getting started
+## 📋 Descripción
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+BaseDR proporciona una arquitectura completa y lista para producción que combina:
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **Backend robusto** con Django REST Framework
+- **Frontend moderno** con React y TailwindCSS
+- **Autenticación segura** mediante JWT
+- **Control de acceso granular** basado en roles y módulos
+- **Base de datos PostgreSQL** para máxima confiabilidad
+- **Documentación profesional** completa
 
-## Add your files
+---
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## 🏗️ Arquitectura
+
+### Stack Tecnológico
+
+#### Backend
+- **Django 5.2** - Framework web Python
+- **Django REST Framework** - API RESTful
+- **Simple JWT** - Autenticación con tokens JWT
+- **PostgreSQL** - Base de datos relacional
+- **CORS Headers** - Manejo de peticiones cross-origin
+
+#### Frontend
+- **React 19** - Biblioteca UI moderna
+- **Vite** - Build tool ultrarrápido
+- **TailwindCSS** - Framework CSS utility-first
+- **React Router** - Navegación SPA
+- **Axios** - Cliente HTTP
+- **Framer Motion** - Animaciones fluidas
+- **Lucide React** - Iconos modernos
+
+---
+
+## ✨ Características Principales
+
+### 🔐 Sistema de Autenticación
+- Login seguro con JWT tokens
+- Refresh tokens para sesiones persistentes
+- Rutas protegidas en frontend y backend
+- Logout con limpieza de tokens
+
+### 👥 Gestión de Usuarios
+- CRUD completo de usuarios
+- Asignación de roles
+- Perfiles de usuario
+- Validación de permisos
+
+### 🎭 Sistema de Roles y Permisos
+- Roles dinámicos configurables
+- Asignación de módulos a roles
+- Control de acceso granular (RBAC)
+- Permisos a nivel de módulo
+
+### 📊 Dashboard Administrativo
+- Interfaz moderna y responsiva
+- Sidebar con navegación dinámica
+- Navbar con información de usuario
+- Acceso basado en permisos
+
+### 🎨 Diseño Premium
+- Interfaz moderna con TailwindCSS
+- Animaciones suaves con Framer Motion
+- Diseño responsivo
+- Experiencia de usuario optimizada
+
+---
+
+## 📁 Estructura del Proyecto
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.centrogeo.edu.mx/u.morales/basedr.git
-git branch -M main
-git push -uf origin main
+basedr/
+├── backend/                    # Django Backend
+│   ├── config/                # Configuración del proyecto
+│   │   ├── settings.py       # Configuración principal
+│   │   ├── urls.py           # URLs principales
+│   │   └── wsgi.py           # WSGI application
+│   ├── core/                  # App principal
+│   │   ├── models.py         # Modelos (User, Role, Module)
+│   │   ├── views.py          # Vistas y endpoints
+│   │   ├── serializers.py    # Serializadores DRF
+│   │   ├── permissions.py    # Permisos personalizados
+│   │   └── admin.py          # Configuración admin
+│   ├── manage.py             # Comando Django
+│   ├── requirements.txt      # Dependencias Python
+│   └── venv/                 # Entorno virtual
+│
+├── frontend/                  # React Frontend
+│   ├── src/
+│   │   ├── components/       # Componentes reutilizables
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   └── ProtectedRoute.jsx
+│   │   ├── context/          # Context API
+│   │   │   └── AuthContext.jsx
+│   │   ├── pages/            # Páginas/Vistas
+│   │   │   ├── LandingPage.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Users.jsx
+│   │   │   ├── Roles.jsx
+│   │   │   ├── Reports.jsx
+│   │   │   ├── Settings.jsx
+│   │   │   └── Hello.jsx
+│   │   ├── services/         # Servicios API
+│   │   │   └── api.js
+│   │   ├── App.jsx           # Componente principal
+│   │   ├── main.jsx          # Entry point
+│   │   └── index.css         # Estilos globales
+│   ├── package.json          # Dependencias Node
+│   ├── vite.config.js        # Configuración Vite
+│   └── tailwind.config.js    # Configuración Tailwind
+│
+├── docs/                      # Documentación profesional
+│   ├── 01_SRS.md             # Especificación de requisitos
+│   ├── 02_Documentacion_Funcional.md
+│   ├── 03_Manual_Usuario.md
+│   ├── 04_Manual_Operacion.md
+│   ├── 05_Seguridad.md
+│   ├── 06_Guia_Despliegue.md
+│   ├── 07_Entrega_y_Versionado.md
+│   ├── 08_Guia_Desarrollo_Modulos.md
+│   ├── Security.md           # Análisis de seguridad
+│   ├── Threat_Model.md       # Modelo de amenazas
+│   ├── Matriz_Riesgos.md     # Matriz de riesgos
+│   ├── Checklist_OWASP.md    # Checklist OWASP
+│   ├── capturas/             # Capturas de pantalla
+│   └── pdf/                  # Documentación en PDF
+│
+├── .env                       # Variables de entorno (NO versionar)
+├── .env.example              # Plantilla de variables
+├── .gitignore                # Archivos ignorados por Git
+├── .gitlab-ci.yml            # CI/CD GitLab
+└── README.md                 # Este archivo
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://gitlab.centrogeo.edu.mx/u.morales/basedr/-/settings/integrations)
+## 🚀 Instalación y Configuración
 
-## Collaborate with your team
+### Prerrequisitos
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+- **Python 3.11+**
+- **Node.js 18+** y npm
+- **PostgreSQL 12+**
+- **Git**
 
-## Test and Deploy
+### 1. Clonar el Repositorio
 
-Use the built-in continuous integration in GitLab.
+```bash
+git clone https://gitlab.centrogeo.edu.mx/u.morales/basedr.git
+cd basedr
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### 2. Configurar Backend
 
-***
+#### 2.1 Crear entorno virtual
 
-# Editing this README
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+#### 2.2 Instalar dependencias
 
-## Suggestions for a good README
+```bash
+pip install -r requirements.txt
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+#### 2.3 Configurar variables de entorno
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+# Copiar el archivo de ejemplo
+cp ../.env.example ../.env
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+# Editar .env con tus credenciales
+nano ../.env
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+**Variables importantes a configurar:**
+- `SECRET_KEY` - Generar una nueva clave secreta
+- `DB_NAME` - Nombre de tu base de datos
+- `DB_USER` - Usuario de PostgreSQL
+- `DB_PASSWORD` - Contraseña de PostgreSQL
+- `DEBUG` - False en producción
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+#### 2.4 Crear base de datos PostgreSQL
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+# Conectar a PostgreSQL
+psql -U postgres
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+# Crear base de datos
+CREATE DATABASE base;
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+# Salir
+\q
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+#### 2.5 Ejecutar migraciones
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### 2.6 Crear superusuario
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```bash
+python manage.py createsuperuser
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+#### 2.7 Cargar datos iniciales (opcional)
 
-## License
-For open source projects, say how it is licensed.
+```bash
+python manage.py loaddata initial_data.json
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### 3. Configurar Frontend
+
+#### 3.1 Instalar dependencias
+
+```bash
+cd ../frontend
+npm install
+```
+
+#### 3.2 Configurar variables de entorno
+
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
+
+# Editar si es necesario
+nano .env
+```
+
+---
+
+## 🎯 Uso
+
+### Desarrollo
+
+#### Iniciar Backend
+
+```bash
+cd backend
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+python manage.py runserver
+```
+
+El backend estará disponible en: `http://localhost:8000`
+
+#### Iniciar Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+El frontend estará disponible en: `http://localhost:5173`
+
+### Producción
+
+#### Backend
+
+```bash
+# Configurar variables de entorno para producción
+export DEBUG=False
+export ALLOWED_HOSTS=tu-dominio.com
+
+# Recolectar archivos estáticos
+python manage.py collectstatic --noinput
+
+# Usar servidor WSGI (Gunicorn, uWSGI, etc.)
+gunicorn config.wsgi:application --bind 0.0.0.0:8000
+```
+
+#### Frontend
+
+```bash
+# Build de producción
+npm run build
+
+# Los archivos estarán en dist/
+# Servir con nginx, apache, etc.
+```
+
+---
+
+## 🔑 Credenciales por Defecto
+
+### Superusuario
+- **Usuario:** (definido al crear superusuario)
+- **Contraseña:** (definida al crear superusuario)
+
+### Base de Datos
+- **Nombre:** base
+- **Usuario:** postgres
+- **Contraseña:** postgres (cambiar en producción)
+- **Host:** localhost
+- **Puerto:** 5432
+
+---
+
+## 📚 Endpoints API
+
+### Autenticación
+
+```
+POST   /api/token/          # Obtener tokens (login)
+POST   /api/token/refresh/  # Refrescar access token
+POST   /api/logout/         # Cerrar sesión
+```
+
+### Usuarios
+
+```
+GET    /api/users/          # Listar usuarios
+POST   /api/users/          # Crear usuario
+GET    /api/users/{id}/     # Obtener usuario
+PUT    /api/users/{id}/     # Actualizar usuario
+DELETE /api/users/{id}/     # Eliminar usuario
+GET    /api/users/me/       # Obtener usuario actual
+```
+
+### Roles
+
+```
+GET    /api/roles/          # Listar roles
+POST   /api/roles/          # Crear rol
+GET    /api/roles/{id}/     # Obtener rol
+PUT    /api/roles/{id}/     # Actualizar rol
+DELETE /api/roles/{id}/     # Eliminar rol
+```
+
+### Módulos
+
+```
+GET    /api/modules/        # Listar módulos disponibles
+```
+
+---
+
+## 🔒 Seguridad
+
+### Características de Seguridad Implementadas
+
+✅ **Autenticación JWT** - Tokens seguros con expiración  
+✅ **Contraseñas hasheadas** - PBKDF2 con salt  
+✅ **CORS configurado** - Orígenes permitidos controlados  
+✅ **CSRF Protection** - Tokens CSRF en formularios  
+✅ **SQL Injection Protection** - ORM Django  
+✅ **XSS Protection** - Sanitización automática  
+✅ **RBAC** - Control de acceso basado en roles  
+✅ **HTTPS Ready** - Configuración para SSL/TLS  
+✅ **Variables de entorno** - Credenciales fuera del código  
+
+### Recomendaciones para Producción
+
+- [ ] Cambiar `SECRET_KEY` por una clave única y segura
+- [ ] Configurar `DEBUG=False`
+- [ ] Configurar `ALLOWED_HOSTS` correctamente
+- [ ] Usar HTTPS (SSL/TLS)
+- [ ] Configurar firewall
+- [ ] Implementar rate limiting
+- [ ] Configurar backups automáticos
+- [ ] Monitoreo y logging
+- [ ] Actualizar dependencias regularmente
+
+---
+
+## 📖 Documentación
+
+La documentación completa del proyecto se encuentra en la carpeta `/docs`:
+
+- **01_SRS.md** - Especificación de Requisitos del Sistema
+- **02_Documentacion_Funcional.md** - Documentación funcional
+- **03_Manual_Usuario.md** - Manual de usuario
+- **04_Manual_Operacion.md** - Manual de operación
+- **05_Seguridad.md** - Análisis de seguridad
+- **06_Guia_Despliegue.md** - Guía de despliegue
+- **07_Entrega_y_Versionado.md** - Control de versiones
+- **08_Guia_Desarrollo_Modulos.md** - Guía para desarrolladores
+
+---
+
+## 🛠️ Desarrollo
+
+### Agregar Nuevos Módulos
+
+Para agregar nuevos módulos al sistema, consulta la guía:
+`docs/08_Guia_Desarrollo_Modulos.md`
+
+### Ejecutar Tests
+
+```bash
+# Backend
+cd backend
+python manage.py test
+
+# Frontend
+cd frontend
+npm run test
+```
+
+---
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+---
+
+## 📝 Licencia
+
+Este proyecto es privado y pertenece a CentroGeo.
+
+---
+
+## 👥 Autores
+
+- **Ulises Morales** - [u.morales@centrogeo.edu.mx](mailto:u.morales@centrogeo.edu.mx)
+
+---
+
+## 📞 Soporte
+
+Para soporte y preguntas:
+- Email: u.morales@centrogeo.edu.mx
+- GitLab Issues: https://gitlab.centrogeo.edu.mx/u.morales/basedr/-/issues
+
+---
+
+## 🗺️ Roadmap
+
+- [x] Sistema de autenticación JWT
+- [x] Gestión de usuarios y roles
+- [x] Dashboard con RBAC
+- [x] Documentación completa
+- [ ] Tests unitarios completos
+- [ ] Tests de integración
+- [ ] Docker containerization
+- [ ] CI/CD pipeline
+- [ ] Monitoreo y logging
+- [ ] API documentation (Swagger/OpenAPI)
+
+---
+
+## 📊 Estado del Proyecto
+
+**Versión:** 1.0.0  
+**Estado:** En Desarrollo Activo  
+**Última Actualización:** 21/01/2026
+
+---
+
+**BaseDR** - Base empresarial segura para aplicaciones Django + React 🚀
