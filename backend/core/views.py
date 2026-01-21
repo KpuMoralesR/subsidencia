@@ -11,6 +11,13 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [HasModuleAccess]
     required_module_code = 'USERS'
+    
+    def get_queryset(self):
+        """
+        Excluye superusuarios de la lista de gestión.
+        Los superusuarios solo se gestionan desde el admin de Django.
+        """
+        return User.objects.filter(is_superuser=False)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
