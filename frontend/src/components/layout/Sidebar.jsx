@@ -1,14 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, Shield, Settings, FileBarChart, LogOut, Hand, User } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Settings, FileBarChart, Hand } from 'lucide-react';
+import UserDropdown from './UserDropdown';
 
 const Sidebar = () => {
-    const { logout, user } = useAuth();
-
-    // Mock logic for determining roles/modules, ideally this comes from 'user' object
-    // For now, we show all if no roles defined (or just for demo)
-    // In real implementation, check: user.role.modules.includes('MODULE_CODE')
+    const { user } = useAuth();
 
     const menuItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', code: 'DASHBOARD' },
@@ -19,70 +16,74 @@ const Sidebar = () => {
         { name: 'Hola', icon: Hand, path: '/hello', code: 'HELLO' },
     ];
 
-    // Item sin código de módulo - accesible para todos
-    const profileItem = { name: 'Mi Perfil', icon: User, path: '/profile' };
-
-    // Filter menu items based on user permissions
-    // Superusers usually have all permissions, but data payload usually reflects that in module_codes or we check is_superuser
-
     const filteredItems = menuItems.filter(item => {
         if (!user) return false;
         if (user.is_superuser) return true;
-
-        // Ensure user.module_codes exists (array of strings like 'DASHBOARD', 'USERS', etc.)
         return user.module_codes?.includes(item.code);
     });
 
     return (
-        <div className="h-screen w-64 bg-gray-900 text-white flex flex-col fixed left-0 top-0">
-            <div className="p-6">
-                <h2 className="text-2xl font-bold tracking-wider">BaseDR</h2>
-                <p className="text-xs text-gray-400 mt-1">Enterprise Edition</p>
-                {user && <p className="text-xs text-gray-500 mt-4 capitalize">Hola, {user.username}</p>}
+        <div className="h-screen w-72 bg-primary-800 text-white flex flex-col fixed left-0 top-0 shadow-2xl z-20 sidebar-gradient border-r border-primary-900">
+            {/* Header del Sidebar */}
+            <div className="p-6 pb-2">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 shadow-inner backdrop-blur-sm">
+                        <span className="font-bold text-xl tracking-tighter text-secondary-400">dr</span>
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight text-white leading-none">BaseDR</h2>
+                        <p className="text-[10px] text-primary-200 mt-0.5 tracking-wider uppercase font-medium opacity-80">
+                            Enterprise Edition
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <nav className="flex-1 px-4 space-y-2 mt-4">
+            {/* Dropdown de Usuario - Visible debajo del logo */}
+            <UserDropdown />
+
+            {/* Menu Label */}
+            <div className="px-6 py-2 mt-2">
+                <span className="text-xs font-semibold text-primary-300 uppercase tracking-widest opacity-80">
+                    Menú Principal
+                </span>
+            </div>
+
+            {/* Navegación */}
+            <nav className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto custom-scrollbar">
                 {filteredItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
-                            `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                            `group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden ${isActive
+                                ? 'bg-secondary-500 text-white font-medium shadow-md'
+                                : 'text-primary-100 hover:bg-primary-700 hover:text-white hover:pl-5'
                             }`
                         }
                     >
-                        <item.icon size={20} />
-                        <span>{item.name}</span>
+                        {({ isActive }) => (
+                            <>
+                                <item.icon
+                                    size={20}
+                                    className={`transition-colors duration-200 ${isActive ? 'text-white' : 'text-primary-300 group-hover:text-white'}`}
+                                    strokeWidth={isActive ? 2.5 : 2}
+                                />
+                                <span>{item.name}</span>
+                                {isActive && (
+                                    <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/20 rounded-l-full" />
+                                )}
+                            </>
+                        )}
                     </NavLink>
                 ))}
-
-                {/* Mi Perfil - Siempre visible para usuarios autenticados */}
-                {user && (
-                    <NavLink
-                        to={profileItem.path}
-                        className={({ isActive }) =>
-                            `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                            }`
-                        }
-                    >
-                        <profileItem.icon size={20} />
-                        <span>{profileItem.name}</span>
-                    </NavLink>
-                )}
             </nav>
 
-            <div className="p-4 border-t border-gray-800">
-                <button
-                    onClick={logout}
-                    className="flex items-center space-x-3 w-full px-4 py-3 text-red-500 hover:bg-gray-800 rounded-lg transition-colors"
-                >
-                    <LogOut size={20} />
-                    <span>Cerrar Sesión</span>
-                </button>
+            {/* Footer opcional */}
+            <div className="p-4 text-center">
+                <p className="text-[10px] text-primary-300 opacity-60">
+                    © 2026 Gobierno de México
+                </p>
             </div>
         </div>
     );
