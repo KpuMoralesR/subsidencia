@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, Shield, Settings, FileBarChart, LogOut, Hand } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Settings, FileBarChart, LogOut, Hand, User } from 'lucide-react';
 
 const Sidebar = () => {
     const { logout, user } = useAuth();
@@ -18,6 +18,9 @@ const Sidebar = () => {
         { name: 'Configuración', icon: Settings, path: '/settings', code: 'SETTINGS' },
         { name: 'Hola', icon: Hand, path: '/hello', code: 'HELLO' },
     ];
+
+    // Item sin código de módulo - accesible para todos
+    const profileItem = { name: 'Mi Perfil', icon: User, path: '/profile' };
 
     // Filter menu items based on user permissions
     // Superusers usually have all permissions, but data payload usually reflects that in module_codes or we check is_superuser
@@ -54,6 +57,22 @@ const Sidebar = () => {
                         <span>{item.name}</span>
                     </NavLink>
                 ))}
+
+                {/* Mi Perfil - Siempre visible para usuarios autenticados */}
+                {user && (
+                    <NavLink
+                        to={profileItem.path}
+                        className={({ isActive }) =>
+                            `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                            }`
+                        }
+                    >
+                        <profileItem.icon size={20} />
+                        <span>{profileItem.name}</span>
+                    </NavLink>
+                )}
             </nav>
 
             <div className="p-4 border-t border-gray-800">

@@ -11,6 +11,7 @@ import Roles from './pages/Roles';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Hello from './pages/Hello';
+import Profile from './pages/Profile';
 
 function App() {
     return (
@@ -28,6 +29,7 @@ function App() {
                         <Route path="/reports" element={<Reports />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/hello" element={<Hello />} />
+                        <Route path="/profile" element={<Profile />} />
                     </Route>
 
                     {/* Fallback */}

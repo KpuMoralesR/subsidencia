@@ -1,8 +1,8 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import User, Role, Module
-from .serializers import UserSerializer, RoleSerializer, ModuleSerializer
+from .serializers import UserSerializer, RoleSerializer, ModuleSerializer, ProfileSerializer
 from .permissions import HasModuleAccess, RolePermission
 from . import permissions as role_permissions # alias to avoid conflict if needed, or just import logic
 
@@ -23,6 +23,27 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get', 'patch'], permission_classes=[permissions.IsAuthenticated])
+    def profile(self, request):
+        """
+        GET: Obtiene el perfil del usuario autenticado
+        PATCH: Actualiza el perfil del usuario autenticado
+        
+        Accesible para todos los usuarios autenticados sin necesidad de permisos de módulo.
+        """
+        user = request.user
+        
+        if request.method == 'GET':
+            serializer = ProfileSerializer(user)
+            return Response(serializer.data)
+        
+        elif request.method == 'PATCH':
+            serializer = ProfileSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()

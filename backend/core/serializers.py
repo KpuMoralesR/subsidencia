@@ -67,3 +67,28 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(password)
             user.save()
         return user
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer para actualización de perfil propio.
+    Solo permite modificar campos seguros.
+    """
+    role_name = serializers.SerializerMethodField()
+    module_codes = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role_name', 'module_codes']
+        read_only_fields = ['id', 'role_name', 'module_codes']
+    
+    def get_role_name(self, obj):
+        if obj.is_superuser:
+            return "Super User"
+        return obj.role.name if obj.role else "Usuario"
+    
+    def get_module_codes(self, obj):
+        if obj.is_superuser:
+            return ["ALL"]  # Superusuarios tienen acceso a todo
+        if obj.role:
+            return list(obj.role.modules.values_list('code', flat=True))
+        return []
