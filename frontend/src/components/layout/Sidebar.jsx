@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, Shield, UserCircle, Box, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, UserCircle, Box, BarChart2, Package } from 'lucide-react';
 import UserDropdown from './UserDropdown';
 
 const Sidebar = () => {
@@ -14,6 +14,7 @@ const Sidebar = () => {
         { name: 'Perfil', icon: UserCircle, path: '/profile', code: 'PROFILE' },
         { name: 'Módulo de Prueba', icon: Box, path: '/modules', code: 'PRUEBA' },
         { name: 'Reportes', icon: BarChart2, path: '/reports', code: 'REPORTES' },
+        { name: 'Inventario', icon: Package, path: '/inventario', code: 'INVENTARIO' },
     ];
 
     const filteredItems = menuItems.filter(item => {

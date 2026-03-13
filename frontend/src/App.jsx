@@ -13,6 +13,8 @@ import ModuleManagement from './pages/ModuleManagement';
 
 import Reports from './pages/Reports';
 
+import Inventario from './pages/Inventario';
+
 function App() {
     return (
         <AuthProvider>
@@ -29,6 +31,7 @@ function App() {
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/modules" element={<ModuleManagement />} />
                         <Route path="/reports" element={<Reports />} />
+                        <Route path="/inventario" element={<Inventario />} />
                     </Route>
 
                     {/* Fallback */}

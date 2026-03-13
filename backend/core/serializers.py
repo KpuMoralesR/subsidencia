@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Role, Module
+from .models import User, Role, Module, Inventario
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -94,3 +94,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         if obj.role:
             return list(obj.role.modules.values_list('code', flat=True))
         return []
+
+
+class InventarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inventario
+        fields = "__all__"

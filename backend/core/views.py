@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import User, Role, Module
-from .serializers import UserSerializer, RoleSerializer, ModuleSerializer, ProfileSerializer
+from .models import User, Role, Module, Inventario
+from .serializers import UserSerializer, RoleSerializer, ModuleSerializer, ProfileSerializer, InventarioSerializer
 from .permissions import HasModuleAccess, RolePermission
 from . import permissions as role_permissions # alias to avoid conflict if needed, or just import logic
 
@@ -56,14 +56,11 @@ class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer
     permission_classes = [permissions.IsAuthenticated] # Modules list might be public to auth users or 'settings' module
 
-class HelloViewSet(viewsets.ViewSet):
-    """
-    ViewSet para el módulo de prueba Hello.
-    Proporciona un endpoint simple para verificar conectividad.
-    """
+
+
+class InventarioViewSet(viewsets.ModelViewSet):
+    """ViewSet CRUD para el módulo Inventario (código: INVENTARIO)."""
+    queryset = Inventario.objects.all()
+    serializer_class = InventarioSerializer
     permission_classes = [HasModuleAccess]
-    required_module_code = 'HELLO'  # Protegido por RBAC
-    
-    def list(self, request):
-        """Retorna un mensaje de saludo desde el backend."""
-        return Response({"message": "Hola desde el Backend BaseDR!"})
+    required_module_code = "INVENTARIO"
