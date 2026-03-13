@@ -33,6 +33,8 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error("Error fetching user", error);
             logout();
+        } finally {
+            setLoading(false);
         }
     };
 

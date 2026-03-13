@@ -48,6 +48,8 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.role.name if obj.role else "User"
 
     def get_module_codes(self, obj):
+        if obj.is_superuser:
+            return list(Module.objects.values_list('code', flat=True))
         if obj.role:
             return list(obj.role.modules.values_list('code', flat=True))
         return []
@@ -88,7 +90,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     
     def get_module_codes(self, obj):
         if obj.is_superuser:
-            return ["ALL"]  # Superusuarios tienen acceso a todo
+            return list(Module.objects.values_list('code', flat=True))
         if obj.role:
             return list(obj.role.modules.values_list('code', flat=True))
         return []

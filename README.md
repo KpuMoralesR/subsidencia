@@ -397,8 +397,55 @@ La documentación completa del proyecto se encuentra en la carpeta `/docs`:
 
 ### Agregar Nuevos Módulos
 
-Para agregar nuevos módulos al sistema, consulta la guía:
-`docs/08_Guia_Desarrollo_Modulos.md`
+BaseDR incluye el script `backend/create_module.py` que automatiza la creación completa de un módulo con un solo comando:
+
+```bash
+cd backend
+python create_module.py --code "CODIGO" --name "Nombre" --desc "Descripción" --icon "chart"
+```
+
+**¿Qué hace automáticamente?**
+
+| Paso | Acción |
+|------|--------|
+| 🗄️ **BD** | Crea el módulo en PostgreSQL (evita duplicados) |
+| 📄 **Página** | Genera `frontend/src/pages/Componente.jsx` con estructura base |
+| 🔀 **Ruta** | Agrega el `import` y `<Route>` en `App.jsx` |
+| 🧭 **Sidebar** | Agrega la entrada con nombre, ícono y código al `Sidebar.jsx` |
+
+**Argumentos disponibles:**
+
+| Argumento | Requerido | Descripción | Ejemplo |
+|-----------|-----------|-------------|--------|
+| `--code` | ✅ | Código único del módulo (se convierte a mayúsculas) | `REPORTES` |
+| `--name` | ✅ | Nombre visible en el Sidebar y la página | `"Reportes"` |
+| `--desc` | ❌ | Descripción del módulo en la BD | `"Módulo de reportes"` |
+| `--path` | ❌ | Slug de la URL (por defecto: code en minúsculas) | `reports` |
+| `--component` | ❌ | Nombre del componente React (por defecto: Code capitalizado) | `Reports` |
+| `--icon` | ❌ | Ícono de Lucide React (por defecto: `box`) | `chart` |
+
+**Íconos disponibles (`--icon`):**
+
+`box`, `chart`, `settings`, `users`, `shield`, `file`, `home`, `bell`, `tool`, `star`, `map`, `calendar`, `mail`, `lock`, `globe`, `database`, `package`, `layers`
+
+**Ejemplo completo:**
+
+```bash
+python create_module.py \
+  --code "REPORTES" \
+  --name "Reportes" \
+  --desc "Módulo de reportes del sistema" \
+  --path "reports" \
+  --component "Reports" \
+  --icon "chart"
+```
+
+> **Nota:** El módulo aparecerá en el Sidebar únicamente si el rol del usuario tiene asignado ese código de módulo. Los superusuarios ven todos los módulos automáticamente.
+
+**Después de crear el módulo:**
+1. Asigna el módulo a los roles que necesiten acceso desde la vista **Gestión de Roles**
+2. Edita `frontend/src/pages/Componente.jsx` para implementar la funcionalidad real
+3. Agrega los endpoints necesarios en `backend/core/views.py` y `urls.py`
 
 ### Ejecutar Tests
 
@@ -461,9 +508,9 @@ Para soporte y preguntas:
 
 ## 📊 Estado del Proyecto
 
-**Versión:** 1.0.0  
+**Versión:** 1.1.0  
 **Estado:** En Desarrollo Activo  
-**Última Actualización:** 21/01/2026
+**Última Actualización:** 13/03/2026
 
 ---
 

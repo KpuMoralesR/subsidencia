@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash, Box, Save, X } from 'lucide-react';
-import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const ModuleManagement = () => {
+    const { api } = useAuth();
     const [modules, setModules] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentModule, setCurrentModule] = useState(null);

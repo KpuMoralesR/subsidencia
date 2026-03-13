@@ -8,10 +8,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 import Users from './pages/Users';
 import Roles from './pages/Roles';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import Hello from './pages/Hello';
 import Profile from './pages/Profile';
+import ModuleManagement from './pages/ModuleManagement';
+
+import Reports from './pages/Reports';
 
 function App() {
     return (
@@ -26,10 +26,9 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/users" element={<Users />} />
                         <Route path="/roles" element={<Roles />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/hello" element={<Hello />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/modules" element={<ModuleManagement />} />
+                        <Route path="/reports" element={<Reports />} />
                     </Route>
 
                     {/* Fallback */}
