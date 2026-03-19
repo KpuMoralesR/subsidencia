@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, Shield, UserCircle, Box, BarChart2, Package } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, UserCircle, Box, BarChart2, Package, Satellite, Globe, Map as MapIcon } from 'lucide-react';
 import UserDropdown from './UserDropdown';
+import { HillAvalanche } from '../UnamIcons';
 
-const Sidebar = () => {
+const Sidebar = ({ isCollapsed }) => {
     const { user } = useAuth();
 
     const menuItems = [
@@ -24,31 +25,37 @@ const Sidebar = () => {
     });
 
     return (
-        <div className="h-screen w-72 bg-primary-800 text-white flex flex-col fixed left-0 top-0 shadow-2xl z-20 sidebar-gradient border-r border-primary-900">
+        <div className={`h-screen bg-unamBlue text-white flex flex-col fixed left-0 top-0 shadow-2xl z-20 border-r border-unamGold/20 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-72'}`}>
             {/* Header del Sidebar */}
-            <div className="p-6 pb-2">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 shadow-inner backdrop-blur-sm">
-                        <span className="font-bold text-xl tracking-tighter text-secondary-400">dr</span>
+            <div className={`p-8 pb-4 transition-all duration-300 ${isCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
+                {!isCollapsed && (
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-12 h-12 bg-white/5 border border-unamGold/20 rounded-xl flex items-center justify-center shadow-2xl backdrop-blur-md">
+                            <HillAvalanche className="text-unamGold w-8 h-8" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black tracking-tighter text-white leading-none uppercase">BaseDR</h2>
+                            <p className="text-[9px] text-unamGold font-bold mt-1.5 tracking-[0.2em] uppercase opacity-80">
+                                UNAM Subsidencia
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="text-xl font-bold tracking-tight text-white leading-none">BaseDR</h2>
-                        <p className="text-[10px] text-primary-200 mt-0.5 tracking-wider uppercase font-medium opacity-80">
-                            Enterprise Edition
-                        </p>
-                    </div>
-                </div>
+                )}
             </div>
 
             {/* Dropdown de Usuario - Visible debajo del logo */}
-            <UserDropdown />
+            <div className={`${isCollapsed ? 'p-2 mt-4' : 'px-4 mb-4'}`}>
+                <UserDropdown isCollapsed={isCollapsed} />
+            </div>
 
             {/* Menu Label */}
-            <div className="px-6 py-2 mt-2">
-                <span className="text-xs font-semibold text-primary-300 uppercase tracking-widest opacity-80">
-                    Menú Principal
-                </span>
-            </div>
+            {!isCollapsed && (
+                <div className="px-6 py-2 mt-2">
+                    <span className="text-xs font-semibold text-primary-300 uppercase tracking-widest opacity-80">
+                        Menú Principal
+                    </span>
+                </div>
+            )}
 
             {/* Navegación */}
             <nav className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto custom-scrollbar">
@@ -57,22 +64,22 @@ const Sidebar = () => {
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
-                            `group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden ${isActive
-                                ? 'bg-secondary-500 text-white font-medium shadow-md'
-                                : 'text-primary-100 hover:bg-primary-700 hover:text-white hover:pl-5'
+                            `group flex items-center space-x-4 px-5 py-4 rounded-xl transition-all duration-300 relative overflow-hidden ${isActive
+                                ? 'bg-unamGold text-unamBlue font-black shadow-[0_0_20px_rgba(241,196,0,0.3)]'
+                                : 'text-white/60 hover:bg-white/5 hover:text-white'
                             }`
                         }
                     >
                         {({ isActive }) => (
                             <>
                                 <item.icon
-                                    size={20}
-                                    className={`transition-colors duration-200 ${isActive ? 'text-white' : 'text-primary-300 group-hover:text-white'}`}
-                                    strokeWidth={isActive ? 2.5 : 2}
+                                    size={18}
+                                    className={`transition-all duration-300 flex-shrink-0 ${isActive ? 'text-unamBlue' : 'text-unamGold/40 group-hover:text-unamGold'} ${isCollapsed ? 'mx-auto' : ''}`}
+                                    strokeWidth={isActive ? 3 : 2}
                                 />
-                                <span>{item.name}</span>
-                                {isActive && (
-                                    <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/20 rounded-l-full" />
+                                {!isCollapsed && <span className="text-[10px] tracking-widest uppercase truncate">{item.name}</span>}
+                                {isActive && !isCollapsed && (
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-unamBlue/20" />
                                 )}
                             </>
                         )}
@@ -81,11 +88,13 @@ const Sidebar = () => {
             </nav>
 
             {/* Footer opcional */}
-            <div className="p-4 text-center">
-                <p className="text-[10px] text-primary-300 opacity-60">
-                    © 2026 Gobierno de México
-                </p>
-            </div>
+            {!isCollapsed && (
+                <div className="p-6 text-center border-t border-white/5">
+                    <p className="text-[8px] text-white/20 font-bold tracking-widest uppercase">
+                        © 2026 UNAM • SUBSIDENCIA
+                    </p>
+                </div>
+            )}
         </div>
     );
 };

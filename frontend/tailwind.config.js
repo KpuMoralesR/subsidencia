@@ -37,6 +37,8 @@ module.exports = {
           active: '#9f2241',
         },
         accent: '#bc955c',
+        unamBlue: '#003B5C',
+        unamGold: '#F1C400',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
