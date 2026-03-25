@@ -553,7 +553,7 @@ const PublicMap = () => {
 
             {/* ── Tooltip Seguidor de Mouse ── */}
             <AnimatePresence>
-                {hoveredLabel && (
+                {hoveredLabel && menuState > 0 && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.8 }} 
                         animate={{ opacity: 1, scale: 1 }} 
@@ -632,7 +632,7 @@ const PublicMap = () => {
                                 )}
                             </AnimatePresence>
                             <circle cx="300" cy="300" r="70" fill="#003B5C" stroke="#F1C400" strokeWidth="3" className="cursor-pointer"
-                                onClick={() => { if (menuState === 0) setMenuState(1); else { setMenuState(0); setActiveCategory(null); } }} />
+                                onClick={() => { if (menuState === 0) setMenuState(1); else { setMenuState(0); setActiveCategory(null); setHoveredLabel(null); } }} />
                             <foreignObject pointerEvents="none" x="275" y="275" width="50" height="50">
                                 <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', color:'#F1C400' }}>
                                     {menuState === 0 ? <Layers size={32} /> : <X size={32} />}
