@@ -10,12 +10,12 @@ const Sidebar = ({ isCollapsed }) => {
 
     const menuItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', code: 'DASHBOARD' },
+        { name: 'Mapa', icon: Satellite, path: '/mapa', code: 'MAPA' },
+        { name: 'Análisis', icon: MapIcon, path: '/analisis', code: 'ANALISIS' },
+        { name: 'Inventario', icon: Package, path: '/inventario', code: 'INVENTARIO' },
         { name: 'Usuarios', icon: Users, path: '/users', code: 'USERS' },
         { name: 'Roles', icon: Shield, path: '/roles', code: 'ROLES' },
         { name: 'Perfil', icon: UserCircle, path: '/profile', code: 'PROFILE' },
-        { name: 'Módulo de Prueba', icon: Box, path: '/modules', code: 'PRUEBA' },
-        { name: 'Reportes', icon: BarChart2, path: '/reports', code: 'REPORTES' },
-        { name: 'Inventario', icon: Package, path: '/inventario', code: 'INVENTARIO' },
     ];
 
     const filteredItems = menuItems.filter(item => {
@@ -30,9 +30,6 @@ const Sidebar = ({ isCollapsed }) => {
             <div className={`p-8 pb-4 transition-all duration-300 ${isCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
                 {!isCollapsed && (
                     <div className="flex items-center gap-4 mb-8">
-                        <div className="w-12 h-12 bg-white/5 border border-unamGold/20 rounded-xl flex items-center justify-center shadow-2xl backdrop-blur-md">
-                            <HillAvalanche className="text-unamGold w-8 h-8" />
-                        </div>
                         <div>
                             <h2 className="text-xl font-black tracking-tighter text-white leading-none uppercase">BaseDR</h2>
                             <p className="text-[9px] text-unamGold font-bold mt-1.5 tracking-[0.2em] uppercase opacity-80">
@@ -50,10 +47,13 @@ const Sidebar = ({ isCollapsed }) => {
 
             {/* Menu Label */}
             {!isCollapsed && (
-                <div className="px-6 py-2 mt-2">
-                    <span className="text-xs font-semibold text-primary-300 uppercase tracking-widest opacity-80">
-                        Menú Principal
-                    </span>
+                <div className="px-3 mb-6">
+                    <p className="px-4 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Administración</p>
+                    <nav className="space-y-1">
+                        <NavItem to="/users" icon={Users} label="Usuarios" />
+                        <NavItem to="/roles" icon={Shield} label="Roles" />
+                        <NavItem to="/modules" icon={Box} label="Módulos" />
+                    </nav>
                 </div>
             )}
 

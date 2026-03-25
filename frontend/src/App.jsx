@@ -13,7 +13,6 @@ import Profile from './pages/Profile';
 import ModuleManagement from './pages/ModuleManagement';
 
 import Reports from './pages/Reports';
-
 import Inventario from './pages/Inventario';
 
 function App() {

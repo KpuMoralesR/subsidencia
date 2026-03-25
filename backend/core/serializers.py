@@ -1,8 +1,11 @@
 from rest_framework import serializers
-from .models import User, Role, Module, Inventario
+from .models import User, Role, Module, Inventario, Pozo, Litologia, PuntoInSAR
 from django.contrib.auth import get_user_model
+from pyproj import Transformer
 
 User = get_user_model()
+utm_to_wgs84 = Transformer.from_crs("epsg:32614", "epsg:4326", always_xy=True)
+
 
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -99,4 +102,35 @@ class ProfileSerializer(serializers.ModelSerializer):
 class InventarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inventario
+        fields = "__all__"
+
+class LitologiaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Litologia
+        fields = "__all__"
+
+class PozoSerializer(serializers.ModelSerializer):
+    capas = LitologiaSerializer(many=True, read_only=True)
+    x = serializers.SerializerMethodField()
+    y = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Pozo
+        fields = ['id', 'name', 'x', 'y', 'elevation', 'well_type', 'capas']
+
+    def get_x(self, obj):
+        if obj.x and obj.y:
+            lng, _ = utm_to_wgs84.transform(obj.x, obj.y)
+            return lng
+        return obj.x
+
+    def get_y(self, obj):
+        if obj.x and obj.y:
+            _, lat = utm_to_wgs84.transform(obj.x, obj.y)
+            return lat
+        return obj.y
+
+class PuntoInSARSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PuntoInSAR
         fields = "__all__"
