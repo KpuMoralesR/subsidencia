@@ -1,517 +1,103 @@
-# 🚀 BaseDR - Django + React Secure Base
+# Plataforma Institucional de Subsidencia - UNAM
 
-**BaseDR** es una plataforma base empresarial robusta y segura, diseñada como punto de partida para aplicaciones web modernas que requieren autenticación, gestión de usuarios y control de acceso basado en roles (RBAC).
+Plataforma integral para el monitoreo geológico, estratigráfico y de subsidencia en el Valle de México. Permite visualizar, filtrar y analizar datos de pozos, fallas geológicas y generar perfiles de transectos estratigráficos interactivos.
 
----
-
-## 📋 Descripción
-
-BaseDR proporciona una arquitectura completa y lista para producción que combina:
-
-- **Backend robusto** con Django REST Framework
-- **Frontend moderno** con React y TailwindCSS
-- **Autenticación segura** mediante JWT
-- **Control de acceso granular** basado en roles y módulos
-- **Base de datos PostgreSQL** para máxima confiabilidad
-- **Documentación profesional** completa
+## 🛠 Características Principales
+*   **Mapa de Calor Estratigráfico**: Visualiza pozos geoespaciales coloreados por su profundidad máxima (Somera, Media, Profunda).
+*   **Visor de Fallas**: Identificación en tiempo real de fracturas geológicas con nivel de riesgo.
+*   **Análisis Dinámico de Transectos**: Herramienta de dibujo de perfiles (líneas) en el mapa que busca intersectar pozos dentro de un buffer paramétrico y generar diagramas de dispersión interactivos de la geología profunda.
+*   **Menú Radial (HUD)**: Panel de control interactivo de usuario inspirado en herramientas CAD para activar y apagar capas al vuelo.
 
 ---
 
-## 🏗️ Arquitectura
-
-### Stack Tecnológico
-
-#### Backend
-- **Django 5.2** - Framework web Python
-- **Django REST Framework** - API RESTful
-- **Simple JWT** - Autenticación con tokens JWT
-- **PostgreSQL** - Base de datos relacional
-- **CORS Headers** - Manejo de peticiones cross-origin
-
-#### Frontend
-- **React 19** - Biblioteca UI moderna
-- **Vite** - Build tool ultrarrápido
-- **TailwindCSS** - Framework CSS utility-first
-- **React Router** - Navegación SPA
-- **Axios** - Cliente HTTP
-- **Framer Motion** - Animaciones fluidas
-- **Lucide React** - Iconos modernos
-
----
-
-## ✨ Características Principales
-
-### 🔐 Sistema de Autenticación
-- Login seguro con JWT tokens
-- Refresh tokens para sesiones persistentes
-- Rutas protegidas en frontend y backend
-- Logout con limpieza de tokens
-
-### 👥 Gestión de Usuarios
-- CRUD completo de usuarios
-- Asignación de roles
-- Perfiles de usuario
-- Validación de permisos
-
-### 🎭 Sistema de Roles y Permisos
-- Roles dinámicos configurables
-- Asignación de módulos a roles
-- Control de acceso granular (RBAC)
-- Permisos a nivel de módulo
-
-### 📊 Dashboard Administrativo
-- Interfaz moderna y responsiva
-- Sidebar con navegación dinámica
-- Navbar con información de usuario
-- Acceso basado en permisos
-
-### 🎨 Diseño Premium
-- Interfaz moderna con TailwindCSS
-- Animaciones suaves con Framer Motion
-- Diseño responsivo
-- Experiencia de usuario optimizada
-
----
-
-## 📁 Estructura del Proyecto
-
-```
-basedr/
-├── backend/                    # Django Backend
-│   ├── config/                # Configuración del proyecto
-│   │   ├── settings.py       # Configuración principal
-│   │   ├── urls.py           # URLs principales
-│   │   └── wsgi.py           # WSGI application
-│   ├── core/                  # App principal
-│   │   ├── models.py         # Modelos (User, Role, Module)
-│   │   ├── views.py          # Vistas y endpoints
-│   │   ├── serializers.py    # Serializadores DRF
-│   │   ├── permissions.py    # Permisos personalizados
-│   │   └── admin.py          # Configuración admin
-│   ├── manage.py             # Comando Django
-│   ├── requirements.txt      # Dependencias Python
-│   └── venv/                 # Entorno virtual
-│
-├── frontend/                  # React Frontend
-│   ├── src/
-│   │   ├── components/       # Componentes reutilizables
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── ProtectedRoute.jsx
-│   │   ├── context/          # Context API
-│   │   │   └── AuthContext.jsx
-│   │   ├── pages/            # Páginas/Vistas
-│   │   │   ├── LandingPage.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Users.jsx
-│   │   │   ├── Roles.jsx
-│   │   │   ├── Reports.jsx
-│   │   │   ├── Settings.jsx
-│   │   │   └── Hello.jsx
-│   │   ├── services/         # Servicios API
-│   │   │   └── api.js
-│   │   ├── App.jsx           # Componente principal
-│   │   ├── main.jsx          # Entry point
-│   │   └── index.css         # Estilos globales
-│   ├── package.json          # Dependencias Node
-│   ├── vite.config.js        # Configuración Vite
-│   └── tailwind.config.js    # Configuración Tailwind
-│
-├── docs/                      # Documentación profesional
-│   ├── 01_SRS.md             # Especificación de requisitos
-│   ├── 02_Documentacion_Funcional.md
-│   ├── 03_Manual_Usuario.md
-│   ├── 04_Manual_Operacion.md
-│   ├── 05_Seguridad.md
-│   ├── 06_Guia_Despliegue.md
-│   ├── 07_Entrega_y_Versionado.md
-│   ├── 08_Guia_Desarrollo_Modulos.md
-│   ├── Security.md           # Análisis de seguridad
-│   ├── Threat_Model.md       # Modelo de amenazas
-│   ├── Matriz_Riesgos.md     # Matriz de riesgos
-│   ├── Checklist_OWASP.md    # Checklist OWASP
-│   ├── capturas/             # Capturas de pantalla
-│   └── pdf/                  # Documentación en PDF
-│
-├── .env                       # Variables de entorno (NO versionar)
-├── .env.example              # Plantilla de variables
-├── .gitignore                # Archivos ignorados por Git
-├── .gitlab-ci.yml            # CI/CD GitLab
-└── README.md                 # Este archivo
-```
-
----
-
-## 🚀 Instalación y Configuración
-
-### Prerrequisitos
-
-- **Python 3.11+**
-- **Node.js 18+** y npm
-- **PostgreSQL 12+**
+## 🚀 Requisitos del Sistema
+- **Node.js**: v16+ (Para el frontend en React+Vite)
+- **Conda** o **Python**: v3.9+ (Para el entorno virtual del backend Django)
 - **Git**
 
-### 1. Clonar el Repositorio
-
-```bash
-git clone https://gitlab.centrogeo.edu.mx/u.morales/basedr.git
-cd basedr
-```
-
-### 2. Configurar Backend
-
-#### 2.1 Crear entorno virtual
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-```
-
-#### 2.2 Instalar dependencias
-
-```bash
-pip install -r requirements.txt
-```
-
-#### 2.3 Configurar variables de entorno
-
-```bash
-# Copiar el archivo de ejemplo
-cp ../.env.example ../.env
-
-# Editar .env con tus credenciales
-nano ../.env
-```
-
-**Variables importantes a configurar:**
-- `SECRET_KEY` - Generar una nueva clave secreta
-- `DB_NAME` - Nombre de tu base de datos
-- `DB_USER` - Usuario de PostgreSQL
-- `DB_PASSWORD` - Contraseña de PostgreSQL
-- `DEBUG` - False en producción
-
-#### 2.4 Crear base de datos PostgreSQL
-
-```bash
-# Conectar a PostgreSQL
-psql -U postgres
-
-# Crear base de datos
-CREATE DATABASE base;
-
-# Salir
-\q
-```
-
-#### 2.5 Ejecutar migraciones
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-#### 2.6 Crear superusuario
-
-```bash
-python manage.py createsuperuser
-```
-
-#### 2.7 Cargar datos iniciales (opcional)
-
-```bash
-python manage.py loaddata initial_data.json
-```
-
-### 3. Configurar Frontend
-
-#### 3.1 Instalar dependencias
-
-```bash
-cd ../frontend
-npm install
-```
-
-#### 3.2 Configurar variables de entorno
-
-```bash
-# Copiar el archivo de ejemplo
-cp .env.example .env
-
-# Editar si es necesario
-nano .env
-```
-
 ---
 
-## 🎯 Uso
+## 💻 Instalación y Ejecución Local
 
-### Desarrollo
-
-#### Iniciar Backend
+### 1. Despliegue del Backend (Django)
+El backend es responsable de despachar la información geográfica y matemática al mapa usando Django Rest Framework.
 
 ```bash
+# Entrar al directorio
 cd backend
-source venv/bin/activate  # En Windows: venv\Scripts\activate
+
+# Crear y activar entorno conda si no está creado
+conda create -n subsidencia python=3.10
+conda activate subsidencia
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Aplicar las migraciones a la Base de Datos SQLite
+python manage.py migrate
+
+# Iniciar el servidor (correrá en http://127.0.0.1:8000)
 python manage.py runserver
 ```
 
-El backend estará disponible en: `http://localhost:8000`
-
-#### Iniciar Frontend
+### 2. Despliegue del Frontend (React + Vite)
+El frontend proporciona toda la interfaz interactiva con React-Leaflet y Tailwind CSS.
 
 ```bash
+# En una nueva terminal, entrar al directorio
 cd frontend
+
+# Instalar los paquetes Node
+npm install
+
+# Levantar el entorno de desarrollo (correrá en http://localhost:5173)
 npm run dev
 ```
 
-El frontend estará disponible en: `http://localhost:5173`
+---
 
-### Producción
+## 🗄️ ¿Cómo cargar los datos a la Base de Datos?
 
-#### Backend
+El sistema cuenta con un script automatizado que lee todos los archivos brutos de litología (`.lth` y `.csv`) proporcionados por los estudios geotécnicos, y los inyecta en la base de datos de Django para que el frontend pueda consumirlos instantáneamente.
 
-```bash
-# Configurar variables de entorno para producción
-export DEBUG=False
-export ALLOWED_HOSTS=tu-dominio.com
+### Pasos para la importación:
 
-# Recolectar archivos estáticos
-python manage.py collectstatic --noinput
+1. Asegúrate de tener la carpeta fuente de datos `PLATAFORMA` ubicada en la raíz del proyecto. El script buscará específicamente los archivos de registro dentro de esta ruta relativa:
+   `../PLATAFORMA/PLATAFORMA/well_data/raw_data/*.lth`
 
-# Usar servidor WSGI (Gunicorn, uWSGI, etc.)
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
-```
+2. Abre una terminal de comandos.
 
-#### Frontend
+3. Activa tu entorno virtual de conda:
+   ```bash
+   conda activate subsidencia
+   ```
 
-```bash
-# Build de producción
-npm run build
+4. Navega a la carpeta del backend:
+   ```bash
+   cd backend
+   ```
 
-# Los archivos estarán en dist/
-# Servir con nginx, apache, etc.
-```
+5. Ejecuta el comando personalizado de importación:
+   ```bash
+   python manage.py importar_datos
+   ```
+
+### ¿Qué hace este script?
+* Extrae las coordenadas **UTM (Zona 14N)** y elevaciones del pozo.
+* Escanea cada una de las capas litológicas bajo esa perforación para guardarlas de manera relacional.
+* Calcula variables geofísicas (Resistividad y Velocidad Sísmica).
+* Note: El backend (*serializers.py*) se encarga de convertir automáticamente en "tiempo real" estas coordenadas UTM a grados Geográficos (WGS84) que el mapa Web entiende.
 
 ---
 
-## 🔑 Credenciales por Defecto
+## 🖌️ Estructura del Proyecto
 
-### Superusuario
-- **Usuario:** (definido al crear superusuario)
-- **Contraseña:** (definida al crear superusuario)
-
-### Base de Datos
-- **Nombre:** base
-- **Usuario:** postgres
-- **Contraseña:** postgres (cambiar en producción)
-- **Host:** localhost
-- **Puerto:** 5432
+* `/backend` : Contiene el servidor de API en Django.
+    * `/core` : La aplicación principal (modelos de `Pozo`, `Litologia`, manejo de rutas).
+* `/frontend` : Contiene la arquitectura SPA (React).
+    * `/src/pages/PublicMap.jsx` : Controlador principal del mapa y la gestión de capas.
+    * `/src/components/` : Menú Radial HUD, Modales y Componentes Institucionales de interfaz.
 
 ---
 
-## 📚 Endpoints API
-
-### Autenticación
-
-```
-POST   /api/token/          # Obtener tokens (login)
-POST   /api/token/refresh/  # Refrescar access token
-POST   /api/logout/         # Cerrar sesión
-```
-
-### Usuarios
-
-```
-GET    /api/users/          # Listar usuarios
-POST   /api/users/          # Crear usuario
-GET    /api/users/{id}/     # Obtener usuario
-PUT    /api/users/{id}/     # Actualizar usuario
-DELETE /api/users/{id}/     # Eliminar usuario
-GET    /api/users/me/       # Obtener usuario actual
-```
-
-### Roles
-
-```
-GET    /api/roles/          # Listar roles
-POST   /api/roles/          # Crear rol
-GET    /api/roles/{id}/     # Obtener rol
-PUT    /api/roles/{id}/     # Actualizar rol
-DELETE /api/roles/{id}/     # Eliminar rol
-```
-
-### Módulos
-
-```
-GET    /api/modules/        # Listar módulos disponibles
-```
-
----
-
-## 🔒 Seguridad
-
-### Características de Seguridad Implementadas
-
-✅ **Autenticación JWT** - Tokens seguros con expiración  
-✅ **Contraseñas hasheadas** - PBKDF2 con salt  
-✅ **CORS configurado** - Orígenes permitidos controlados  
-✅ **CSRF Protection** - Tokens CSRF en formularios  
-✅ **SQL Injection Protection** - ORM Django  
-✅ **XSS Protection** - Sanitización automática  
-✅ **RBAC** - Control de acceso basado en roles  
-✅ **HTTPS Ready** - Configuración para SSL/TLS  
-✅ **Variables de entorno** - Credenciales fuera del código  
-
-### Recomendaciones para Producción
-
-- [ ] Cambiar `SECRET_KEY` por una clave única y segura
-- [ ] Configurar `DEBUG=False`
-- [ ] Configurar `ALLOWED_HOSTS` correctamente
-- [ ] Usar HTTPS (SSL/TLS)
-- [ ] Configurar firewall
-- [ ] Implementar rate limiting
-- [ ] Configurar backups automáticos
-- [ ] Monitoreo y logging
-- [ ] Actualizar dependencias regularmente
-
----
-
-## 📖 Documentación
-
-La documentación completa del proyecto se encuentra en la carpeta `/docs`:
-
-- **01_SRS.md** - Especificación de Requisitos del Sistema
-- **02_Documentacion_Funcional.md** - Documentación funcional
-- **03_Manual_Usuario.md** - Manual de usuario
-- **04_Manual_Operacion.md** - Manual de operación
-- **05_Seguridad.md** - Análisis de seguridad
-- **06_Guia_Despliegue.md** - Guía de despliegue
-- **07_Entrega_y_Versionado.md** - Control de versiones
-- **08_Guia_Desarrollo_Modulos.md** - Guía para desarrolladores
-
----
-
-## 🛠️ Desarrollo
-
-### Agregar Nuevos Módulos
-
-BaseDR incluye el script `backend/create_module.py` que automatiza la creación completa de un módulo con un solo comando:
-
-```bash
-cd backend
-python create_module.py --code "CODIGO" --name "Nombre" --desc "Descripción" --icon "chart"
-```
-
-**¿Qué hace automáticamente?**
-
-| Paso | Acción |
-|------|--------|
-| 🗄️ **BD** | Crea el módulo en PostgreSQL (evita duplicados) |
-| 📄 **Página** | Genera `frontend/src/pages/Componente.jsx` con estructura base |
-| 🔀 **Ruta** | Agrega el `import` y `<Route>` en `App.jsx` |
-| 🧭 **Sidebar** | Agrega la entrada con nombre, ícono y código al `Sidebar.jsx` |
-
-**Argumentos disponibles:**
-
-| Argumento | Requerido | Descripción | Ejemplo |
-|-----------|-----------|-------------|--------|
-| `--code` | ✅ | Código único del módulo (se convierte a mayúsculas) | `REPORTES` |
-| `--name` | ✅ | Nombre visible en el Sidebar y la página | `"Reportes"` |
-| `--desc` | ❌ | Descripción del módulo en la BD | `"Módulo de reportes"` |
-| `--path` | ❌ | Slug de la URL (por defecto: code en minúsculas) | `reports` |
-| `--component` | ❌ | Nombre del componente React (por defecto: Code capitalizado) | `Reports` |
-| `--icon` | ❌ | Ícono de Lucide React (por defecto: `box`) | `chart` |
-
-**Íconos disponibles (`--icon`):**
-
-`box`, `chart`, `settings`, `users`, `shield`, `file`, `home`, `bell`, `tool`, `star`, `map`, `calendar`, `mail`, `lock`, `globe`, `database`, `package`, `layers`
-
-**Ejemplo completo:**
-
-```bash
-python create_module.py \
-  --code "REPORTES" \
-  --name "Reportes" \
-  --desc "Módulo de reportes del sistema" \
-  --path "reports" \
-  --component "Reports" \
-  --icon "chart"
-```
-
-> **Nota:** El módulo aparecerá en el Sidebar únicamente si el rol del usuario tiene asignado ese código de módulo. Los superusuarios ven todos los módulos automáticamente.
-
-**Después de crear el módulo:**
-1. Asigna el módulo a los roles que necesiten acceso desde la vista **Gestión de Roles**
-2. Edita `frontend/src/pages/Componente.jsx` para implementar la funcionalidad real
-3. Agrega los endpoints necesarios en `backend/core/views.py` y `urls.py`
-
-### Ejecutar Tests
-
-```bash
-# Backend
-cd backend
-python manage.py test
-
-# Frontend
-cd frontend
-npm run test
-```
-
----
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
----
-
-## 📝 Licencia
-
-Este proyecto es privado y pertenece a CentroGeo.
-
----
-
-## 👥 Autores
-
-- **Ulises Morales** - [u.morales@centrogeo.edu.mx](mailto:u.morales@centrogeo.edu.mx)
-
----
-
-## 📞 Soporte
-
-Para soporte y preguntas:
-- Email: u.morales@centrogeo.edu.mx
-- GitLab Issues: https://gitlab.centrogeo.edu.mx/u.morales/basedr/-/issues
-
----
-
-## 🗺️ Roadmap
-
-- [x] Sistema de autenticación JWT
-- [x] Gestión de usuarios y roles
-- [x] Dashboard con RBAC
-- [x] Documentación completa
-- [ ] Tests unitarios completos
-- [ ] Tests de integración
-- [ ] Docker containerization
-- [ ] CI/CD pipeline
-- [ ] Monitoreo y logging
-- [ ] API documentation (Swagger/OpenAPI)
-
----
-
-## 📊 Estado del Proyecto
-
-**Versión:** 1.1.0  
-**Estado:** En Desarrollo Activo  
-**Última Actualización:** 13/03/2026
-
----
-
-**BaseDR** - Base empresarial segura para aplicaciones Django + React 🚀
+> Desarrollado para visualización e investigación de deformación terrestre y geotecnia.
