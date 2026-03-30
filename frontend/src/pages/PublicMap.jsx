@@ -10,7 +10,7 @@ import axios from 'axios';
 import {
     House, Map as MapIcon, Layers, ChartLine,
     UserLock, X, Pencil, Circle, BoxSelect, RotateCcw,
-    Satellite, MapPin, Clock, Settings, Globe, Database, Minus
+    Satellite, MapPin, Clock, Settings, Globe, Database, Minus, Plus, Trash2
 } from 'lucide-react';
 import { HillAvalanche } from '../components/UnamIcons';
 import LoginModal from '../components/LoginModal';
@@ -78,13 +78,36 @@ const DrawingHandler = ({ activeTool, onCreated }) => {
         if (toolRef.current) { try { toolRef.current.disable(); } catch (_) {} toolRef.current = null; }
         if (!activeTool) return;
         let instance = null;
-        if (activeTool === 'polyline') instance = new L.Draw.Polyline(map, { shapeOptions: { color: '#F1C400', weight: 3, opacity: 0.9 } });
+        if (activeTool === 'polyline') instance = new L.Draw.Polyline(map, { shapeOptions: { color: '#F1C400', weight: 4, opacity: 1 } });
         else if (activeTool === 'polygon') instance = new L.Draw.Polygon(map, { shapeOptions: { color: '#0ea5e9' } });
         else if (activeTool === 'circle')  instance = new L.Draw.Circle(map,  { shapeOptions: { color: '#f97316' } });
         if (instance) { toolRef.current = instance; instance.enable(); }
     }, [activeTool, map]);
 
     return null;
+};
+
+// ── Custom Map Controls (Zoom) ──────────────────────────────────────────
+const CustomMapControls = () => {
+    const map = useMap();
+    return (
+        <div className="absolute top-[70px] left-4 z-[1000] flex flex-col gap-2 pointer-events-auto">
+            <button
+                onClick={(e) => { e.stopPropagation(); map.zoomIn(); }}
+                title="Acercar"
+                className="w-10 h-10 bg-[#003B5C]/90 backdrop-blur-md border border-[#F1C400]/40 rounded-lg flex items-center justify-center text-[#F1C400] hover:bg-[#F1C400] hover:text-[#003B5C] transition-all shadow-xl"
+            >
+                <Plus size={20} />
+            </button>
+            <button
+                onClick={(e) => { e.stopPropagation(); map.zoomOut(); }}
+                title="Alejar"
+                className="w-10 h-10 bg-[#003B5C]/90 backdrop-blur-md border border-[#F1C400]/40 rounded-lg flex items-center justify-center text-[#F1C400] hover:bg-[#F1C400] hover:text-[#003B5C] transition-all shadow-xl"
+            >
+                <Minus size={20} />
+            </button>
+        </div>
+    );
 };
 
 // ── Menú radial helpers ────────────────────────────────────────────────────
@@ -123,12 +146,12 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
     const scatterOptions = {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-            legend: { labels: { color: '#94a3b8', font: { size: 8, weight: 'bold' }, boxWidth: 12 } },
+            legend: { labels: { color: '#334155', font: { size: 8, weight: 'bold' }, boxWidth: 12 } },
             tooltip: { callbacks: { label: (ctx) => { const w = wells[ctx.dataIndex]; return w ? `${w.pozo?.name ?? 'Pozo'} | ${ctx.parsed.x.toFixed(0)} m | offset: ${ctx.parsed.y.toFixed(0)} m` : ''; } } }
         },
         scales: {
-            x: { title: { display: true, text: 'Distancia a lo largo del transecto (m)', color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 8 } }, min: 0, max: lineLength * 1.02 },
-            y: { title: { display: true, text: 'Offset perpendicular (m)', color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 8 } } }
+            x: { title: { display: true, text: 'Distancia a lo largo del transecto (m)', color: '#475569', font: { size: 9 } }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569', font: { size: 8 } }, min: 0, max: lineLength * 1.02 },
+            y: { title: { display: true, text: 'Offset perpendicular (m)', color: '#475569', font: { size: 9 } }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569', font: { size: 8 } } }
         }
     };
 
@@ -138,17 +161,17 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
         datasets: [{
             label: 'Elevación (m.s.n.m.)',
             data: elevWells.map(w => w.pozo.elevation),
-            borderColor: '#F1C400', backgroundColor: 'rgba(241,196,0,0.12)',
+            borderColor: '#F1C400', backgroundColor: 'rgba(241,196,0,0.15)',
             pointBackgroundColor: elevWells.map(w => WELL_TYPE_COLORS[getClass(w.pozo)]),
             pointBorderColor: '#fff', pointRadius: 5, tension: 0.35, fill: true,
         }]
     };
     const elevOptions = {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 8 }, boxWidth: 12 } } },
+        plugins: { legend: { labels: { color: '#334155', font: { size: 8, weight: 'bold' }, boxWidth: 12 } } },
         scales: {
-            x: { title: { display: true, text: 'Distancia (m)', color: '#94a3b8', font: { size: 9 } }, ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-            y: { title: { display: true, text: 'Elevación (m.s.n.m.)', color: '#94a3b8', font: { size: 9 } }, ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+            x: { title: { display: true, text: 'Distancia (m)', color: '#475569', font: { size: 9 } }, ticks: { color: '#475569', font: { size: 8 } }, grid: { color: '#e2e8f0' } },
+            y: { title: { display: true, text: 'Elevación (m.s.n.m.)', color: '#475569', font: { size: 9 } }, ticks: { color: '#475569', font: { size: 8 } }, grid: { color: '#e2e8f0' } }
         }
     };
 
@@ -158,10 +181,10 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
             initial={{ opacity: 0, x: 60, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 80, scale: 0.9 }}
-            className="w-[560px] bg-[#0d1b2a] rounded-lg overflow-hidden"
+            className="w-[560px] bg-[#003B5C] rounded-lg overflow-hidden shadow-2xl"
             style={{
-                border: focused ? '2px solid #F1C400' : '1px solid rgba(241,196,0,0.35)',
-                boxShadow: focused ? '0 0 40px rgba(241,196,0,0.25)' : '0 4px 30px rgba(0,0,0,0.6)',
+                border: focused ? '2px solid #F1C400' : '1px solid rgba(241,196,0,0.3)',
+                boxShadow: focused ? '0 0 40px rgba(241,196,0,0.3)' : '0 8px 40px rgba(0,0,0,0.6)',
             }}
         >
             {/* Header sólido */}
@@ -179,25 +202,25 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
                         className="flex items-center gap-1 text-[#94a3b8] hover:text-[#F1C400] px-2 py-1 rounded hover:bg-white/10 transition-all text-[8px] font-black tracking-wider uppercase"
                         title="Archivar — minimiza el panel al costado derecho"
                     >
-                        <Minus size={11} /> Archivar
+                        <Minus size={11} /> 
                     </button>
-                    <button onClick={onClose} className="text-[#94a3b8] hover:text-red-400 p-1 rounded hover:bg-white/10 transition-all" title="Cerrar">
-                        <X size={13} />
+                    <button onClick={onClose} className="text-[#94a3b8] hover:text-red-400 p-1.5 rounded hover:bg-white/10 transition-all" title="Eliminar línea y panel">
+                        <Trash2 size={13} />
                     </button>
                 </div>
             </div>
 
             {/* Cuerpo */}
-            <div className="p-4 space-y-4 bg-[#0d1b2a]">
-                <div>
-                    <p className="text-[#F1C400] text-[9px] font-black tracking-widest uppercase mb-2">Perfil de Offset Lateral</p>
+            <div className="p-4 space-y-4 bg-[#003B5C]">
+                <div className="bg-white rounded-lg p-3 shadow-inner">
+                    <p className="text-[#003B5C] text-[9px] font-black tracking-widest uppercase mb-2">Perfil de Offset Lateral</p>
                     <div className="h-52">
                         <Scatter data={{ datasets: [...offsetDatasets, ...refDatasets] }} options={scatterOptions} />
                     </div>
                 </div>
                 {elevWells.length >= 2 && (
-                    <div>
-                        <p className="text-[#F1C400] text-[9px] font-black tracking-widest uppercase mb-2">Perfil de Elevación</p>
+                    <div className="bg-white rounded-lg p-3 shadow-inner">
+                        <p className="text-[#003B5C] text-[9px] font-black tracking-widest uppercase mb-2">Perfil de Elevación</p>
                         <div className="h-44">
                             <Line data={elevData} options={elevOptions} />
                         </div>
@@ -205,7 +228,7 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
                 )}
                 <div>
                     <p className="text-[#F1C400] text-[9px] font-black tracking-widest uppercase mb-2">Pozos en el Buffer</p>
-                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#F1C400 #0d1b2a' }}>
+                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#F1C400 #002a45' }}>
                         {wells.map((w, i) => (
                             <div key={i} className="flex items-center justify-between p-2 bg-white/5 border border-white/10 rounded text-[9px]">
                                 <div className="flex items-center gap-2 min-w-0">
@@ -351,6 +374,7 @@ const PublicMap = () => {
 
             {/* ── Mapa ───────────────────────────────────────────────── */}
             <MapContainer center={[19.32, -99.13]} zoom={12} zoomControl={false} className="h-full w-full z-0">
+                <CustomMapControls />
                 {activeBaseLayer === 'topo' ? (
                     <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" attribution="OpenTopoMap" />
                 ) : activeBaseLayer === 'terrain' ? (
@@ -417,11 +441,18 @@ const PublicMap = () => {
                         positions={panel.latlngs}
                         pathOptions={{
                             color:     focusedId === panel.id ? '#ffffff' : '#F1C400',
-                            weight:    focusedId === panel.id ? 5 : 3,
-                            opacity:   panel.archived ? 0.5 : 1,
-                            dashArray: focusedId === panel.id ? null : '8 4',
+                            weight:    focusedId === panel.id ? 5 : 4,
+                            opacity:   1,
+                            dashArray: focusedId === panel.id ? null : '10 5',
+                            lineCap: 'round',
+                            lineJoin: 'round'
                         }}
-                        eventHandlers={{ click: () => { restorePanel(panel.id); } }}
+                        eventHandlers={{ 
+                            click: (e) => { 
+                                L.DomEvent.stopPropagation(e);
+                                restorePanel(panel.id); 
+                            } 
+                        }}
                     >
                         <Popup><div className="p-1 text-[11px]"><b>Transecto {panel.id}</b><br />{panel.data.length} pozos · {(panel.lineLength / 1000).toFixed(1)} km</div></Popup>
                     </Polyline>
@@ -571,12 +602,11 @@ const PublicMap = () => {
             {!activeTool && (
                 <div 
                     onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-                    className="fixed bottom-[-285px] left-1/2 -translate-x-1/2 z-[2000] w-[600px] h-[600px] flex justify-center items-center hover:bottom-[-250px] transition-all duration-700 pointer-events-none"
+                    className="fixed bottom-[-265px] left-1/2 -translate-x-1/2 z-[2000] w-[600px] h-[600px] flex justify-center items-center pointer-events-none"
                 >
-                    <div className="relative w-full h-full flex justify-center items-center pointer-events-auto">
+                    <div className="relative w-full h-full flex justify-center items-center pointer-events-none">
 
-
-                        <svg width="600" height="600" viewBox="0 0 600 600" className="drop-shadow-[0_0_50px_rgba(0,0,0,0.6)] overflow-visible">
+                        <svg width="600" height="600" viewBox="0 0 600 600" className="drop-shadow-[0_0_50px_rgba(0,0,0,0.6)] overflow-visible pointer-events-none">
                             <AnimatePresence>
                                 {menuState === 2 && activeCategory !== null && (
                                     <motion.g initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}>
@@ -586,14 +616,14 @@ const PublicMap = () => {
                                             const pos = polarToCartesian(300, 300, 200, mid);
                                             const Icon = sub.i;
                                             return (
-                                                <g key={j} className="cursor-pointer" 
+                                                <g key={j} className="cursor-pointer pointer-events-auto" 
                                                     onMouseEnter={() => setHoveredLabel(sub.n)}
                                                     onMouseLeave={() => setHoveredLabel(null)}
                                                     onClick={() => handleAction(sub.a)}
                                                 >
                                                     <title>{sub.n}</title>
                                                     <path d={createPath(300, 300, 160, 240, s, en)} fill="rgba(0,59,92,0.97)" stroke={CATEGORIES[activeCategory].color} strokeWidth="1" />
-                                                    <foreignObject x={pos.x - 20} y={pos.y - 18} width="40" height="36">
+                                                    <foreignObject x={pos.x - 20} y={pos.y - 18} width="40" height="36" className="pointer-events-none">
                                                         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'2px' }}>
                                                             <Icon size={15} color={CATEGORIES[activeCategory].color} />
                                                             <span style={{ color:'white', fontSize:'7px', fontWeight:'bold', textAlign:'center' }}>{sub.n}</span>
@@ -615,14 +645,14 @@ const PublicMap = () => {
                                             const Icon = cat.icon;
                                             const active = activeCategory === i;
                                             return (
-                                                <g key={i} className="cursor-pointer" 
+                                                <g key={i} className="cursor-pointer pointer-events-auto" 
                                                     onMouseEnter={() => setHoveredLabel(cat.name)}
                                                     onMouseLeave={() => setHoveredLabel(null)}
                                                     onClick={(ev) => { ev.stopPropagation(); setActiveCategory(i); setMenuState(2); }}
                                                 >
                                                     <title>{cat.name}</title>
                                                     <path d={createPath(300, 300, 70, 158, angles[i], angles[i]+45)} fill={active ? "rgba(0,59,92,1)" : "rgba(0,59,92,0.85)"} stroke={active ? cat.color : "rgba(241,196,0,0.15)"} strokeWidth="2" />
-                                                    <foreignObject x={pos.x-14} y={pos.y-14} width="28" height="28">
+                                                    <foreignObject x={pos.x-14} y={pos.y-14} width="28" height="28" className="pointer-events-none">
                                                         <Icon size={24} color={cat.color} />
                                                     </foreignObject>
                                                 </g>
@@ -631,7 +661,7 @@ const PublicMap = () => {
                                     </motion.g>
                                 )}
                             </AnimatePresence>
-                            <circle cx="300" cy="300" r="70" fill="#003B5C" stroke="#F1C400" strokeWidth="3" className="cursor-pointer"
+                            <circle cx="300" cy="300" r="70" fill="#003B5C" stroke="#F1C400" strokeWidth="3" className="cursor-pointer pointer-events-auto"
                                 onClick={() => { if (menuState === 0) setMenuState(1); else { setMenuState(0); setActiveCategory(null); setHoveredLabel(null); } }} />
                             <foreignObject pointerEvents="none" x="275" y="275" width="50" height="50">
                                 <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', color:'#F1C400' }}>

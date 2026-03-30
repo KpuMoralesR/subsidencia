@@ -355,3 +355,9 @@ backend/static_root/
 # ============================================
 # docs/pdf/  # Descomentar si no quieres versionar PDFs
 # docs/capturas/  # Descomentar si no quieres versionar capturas
+
+# ============================================
+# DATOS EXCLUIDOS POR TAMAÑO / REQUERIMIENTO
+# ============================================
+MECANICA_SUELOS/
+PLATAFORMA/
