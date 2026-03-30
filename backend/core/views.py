@@ -202,7 +202,26 @@ class TransectImageView(APIView):
             if hasattr(analyzer, 'results') and analyzer.results is not None and not analyzer.results.empty:
                 analyzer.results.to_csv(csv_path, index=False)
 
-            response_data = {}
+            import zipfile
+            import io
+
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+                if os.path.exists(map_prof_path):
+                    zip_file.write(map_prof_path, arcname=map_prof_name)
+                if os.path.exists(cross_path):
+                    zip_file.write(cross_path, arcname=cross_name)
+                if os.path.exists(csv_path):
+                    zip_file.write(csv_path, arcname=csv_name)
+            
+            zip_buffer.seek(0)
+            zip_base64 = base64.b64encode(zip_buffer.read()).decode('utf-8')
+
+            response_data = {
+                "zip": zip_base64,
+                "wells_data": analyzer.results.to_dict(orient='records') if (hasattr(analyzer, 'results') and not analyzer.results.empty) else []
+            }
+            
             if os.path.exists(map_prof_path):
                 with open(map_prof_path, "rb") as f:
                     response_data['map_profile'] = base64.b64encode(f.read()).decode('utf-8')
@@ -210,10 +229,6 @@ class TransectImageView(APIView):
             if os.path.exists(cross_path):
                 with open(cross_path, "rb") as f:
                     response_data['cross_section'] = base64.b64encode(f.read()).decode('utf-8')
-
-            if os.path.exists(csv_path):
-                with open(csv_path, "rb") as f:
-                    response_data['csv'] = base64.b64encode(f.read()).decode('utf-8')
 
             import shutil
             shutil.rmtree(out_dir, ignore_errors=True)

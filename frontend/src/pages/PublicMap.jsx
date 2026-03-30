@@ -11,7 +11,7 @@ import {
     House, Map as MapIcon, Layers, ChartLine,
     UserLock, X, Pencil, Circle, BoxSelect, RotateCcw,
     Satellite, MapPin, Clock, Settings, Globe, Database, Minus, Plus, Trash2,
-    Maximize2, Minimize2
+    Maximize2, Minimize2, FolderArchive
 } from 'lucide-react';
 import { HillAvalanche } from '../components/UnamIcons';
 import LoginModal from '../components/LoginModal';
@@ -45,6 +45,14 @@ const WELL_TYPE_COLORS = {
     'Media (100-200m)':     '#1E88E5', // Azul vibrante
     'Somera (< 100m)':      '#F1C400', // Oro UNAM
     'Sin Estratigrafía':    '#ef4444', // Rojo alerta
+};
+
+const PYTHON_WELL_TYPE_COLORS = {
+    'TRS (Seismic)':          '#A23B72',
+    'SEV/RGP (Resistivity)':  '#F18F01',
+    'Lithological':            '#2E86AB',
+    'RGP (Water Table)':       '#C73E1D',
+    'Unknown':                 '#6C757D',
 };
 
 const getClass = (p) => {
@@ -124,7 +132,7 @@ const createPath = (x, y, ri, ro, s, e) => {
 };
 
 // ── Modal Envolvente Pantalla Completa ─────────────────────────────────────
-const ExpandableWrapper = ({ title, children, isImage = false, heightClass = "h-52" }) => {
+const ExpandableWrapper = ({ title, children, isImage = false, imgSrc = null, heightClass = "h-52" }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     if (isExpanded) {
@@ -142,8 +150,12 @@ const ExpandableWrapper = ({ title, children, isImage = false, heightClass = "h-
                         <Minimize2 size={24} />
                     </button>
                 </div>
-                <div className="flex-1 w-full bg-white rounded-xl shadow-[0_0_80px_rgba(241,196,0,0.1)] flex items-center justify-center p-6 overflow-hidden relative">
-                    {children}
+                <div className="flex-1 w-full bg-[#f8fafc] rounded-xl shadow-[0_0_80px_rgba(241,196,0,0.1)] flex items-start justify-start p-2 overflow-auto relative style={{ scrollbarWidth: 'thin', scrollbarColor: '#003B5C #e2e8f0' }}">
+                    {imgSrc ? (
+                        <img src={imgSrc} alt={title} className="max-w-none h-auto w-auto object-none cursor-crosshair" />
+                    ) : (
+                        children
+                    )}
                 </div>
             </div>
         );
@@ -156,13 +168,17 @@ const ExpandableWrapper = ({ title, children, isImage = false, heightClass = "h-
                 <button 
                     onClick={() => setIsExpanded(true)}
                     className="p-1.5 bg-[#F1C400] text-[#003B5C] rounded opacity-0 group-hover:opacity-100 transition-all hover:bg-[#003B5C] hover:text-[#F1C400] shadow-md"
-                    title={`Ver en pantalla completa`}
+                    title={`Ver en pantalla completa tamaño original`}
                 >
                     <Maximize2 size={13} />
                 </button>
             </div>
             <div className={isImage ? "relative w-full h-auto flex flex-col items-center justify-center overflow-hidden" : `relative w-full ${heightClass}`}>
-                {children}
+                {imgSrc ? (
+                    <img src={imgSrc} alt={title} className="w-full h-full object-contain max-h-[300px]" />
+                ) : (
+                    children
+                )}
             </div>
         </div>
     );
@@ -170,16 +186,16 @@ const ExpandableWrapper = ({ title, children, isImage = false, heightClass = "h-
 
 // ── Panel de análisis de transecto ────────────────────────────────────────
 const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => {
-    const { id, data: wells, lineLength, buffer } = panel;
+    const { id, data: wells, lineLength, buffer, zip } = panel;
 
-    const offsetDatasets = Object.entries(WELL_TYPE_COLORS).map(([wtype, color]) => {
-        const pts = wells.filter(w => getClass(w.pozo) === wtype);
+    const offsetDatasets = Object.entries(PYTHON_WELL_TYPE_COLORS).map(([wtype, color]) => {
+        const pts = wells.filter(w => w.well_type === wtype);
         if (!pts.length) return null;
         return {
             label: `${wtype} (n=${pts.length})`,
-            data: pts.map(w => ({ x: w.dist_along, y: w.dist_off_signed ?? w.dist_off })),
+            data: pts.map(w => ({ x: w.dist_along, y: w.dist_off_signed ?? (w.side * w.dist_to_line) })),
             backgroundColor: color + 'CC', borderColor: color,
-            pointRadius: 7, pointHoverRadius: 10,
+            pointRadius: 6, pointHoverRadius: 9,
         };
     }).filter(Boolean);
 
@@ -193,7 +209,7 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
         responsive: true, maintainAspectRatio: false,
         plugins: {
             legend: { labels: { color: '#334155', font: { size: 8, weight: 'bold' }, boxWidth: 12 } },
-            tooltip: { callbacks: { label: (ctx) => { const w = wells[ctx.dataIndex]; return w ? `${w.pozo?.name ?? 'Pozo'} | ${ctx.parsed.x.toFixed(0)} m | offset: ${ctx.parsed.y.toFixed(0)} m` : ''; } } }
+            tooltip: { callbacks: { label: (ctx) => { const w = wells[ctx.dataIndex]; return w ? `${w.well_id || 'Pozo'} | ${ctx.parsed.x.toFixed(0)} m | offset: ${ctx.parsed.y.toFixed(0)} m` : ''; } } }
         },
         scales: {
             x: { title: { display: true, text: 'Distancia a lo largo del transecto (m)', color: '#475569', font: { size: 9 } }, grid: { color: '#e2e8f0' }, ticks: { color: '#475569', font: { size: 8 } }, min: 0, max: lineLength * 1.02 },
@@ -201,14 +217,14 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
         }
     };
 
-    const elevWells = wells.filter(w => w.pozo?.elevation != null).sort((a, b) => a.dist_along - b.dist_along);
+    const elevWells = wells.filter(w => w.elevation != null).sort((a, b) => a.dist_along - b.dist_along);
     const elevData = {
         labels: elevWells.map(w => w.dist_along.toFixed(0)),
         datasets: [{
             label: 'Elevación (m.s.n.m.)',
-            data: elevWells.map(w => w.pozo.elevation),
+            data: elevWells.map(w => w.elevation),
             borderColor: '#F1C400', backgroundColor: 'rgba(241,196,0,0.15)',
-            pointBackgroundColor: elevWells.map(w => WELL_TYPE_COLORS[getClass(w.pozo)]),
+            pointBackgroundColor: elevWells.map(w => PYTHON_WELL_TYPE_COLORS[w.well_type] || '#888'),
             pointBorderColor: '#fff', pointRadius: 5, tension: 0.35, fill: true,
         }]
     };
@@ -243,14 +259,14 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
                     <span className="text-[#94a3b8] text-[8px] ml-1">{wells.length} pozos · {(lineLength / 1000).toFixed(1)} km</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    {panel.csv && (
+                    {zip && (
                         <a
-                            href={`data:text/csv;base64,${panel.csv}`}
-                            download={`transecto_${panel.id.replace('#', '')}_pozos.csv`}
-                            className="flex items-center gap-1 text-[#94a3b8] hover:text-[#10b981] px-2 py-1 rounded hover:bg-white/10 transition-all text-[8px] font-black tracking-wider uppercase"
-                            title="Descargar datos de pozos y offset en formato CSV"
+                            href={`data:application/zip;base64,${zip}`}
+                            download={`transecto_${panel.id.replace('#', '')}_pack.zip`}
+                            className="flex items-center gap-1 text-[#F1C400] hover:text-[#10b981] px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-all text-[8px] font-black tracking-wider uppercase border border-[#F1C400]/20"
+                            title="Descargar ZIP con Imágenes PNG y Datos CSV"
                         >
-                            <Database size={11} /> CSV
+                            <FolderArchive size={11} /> Descargar ZIP
                         </a>
                     )}
                     <button
@@ -279,23 +295,19 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
                 )}
                 
                 {panel.cross_section && (
-                    <ExpandableWrapper title="Corte Geológico (Sección)" isImage>
-                        <img 
-                            src={`data:image/png;base64,${panel.cross_section}`} 
-                            alt="Corte Geológico Python" 
-                            className="w-full h-full object-contain max-h-[400px]" 
-                        />
-                    </ExpandableWrapper>
+                    <ExpandableWrapper 
+                        title="Corte Geológico (Sección)" 
+                        isImage 
+                        imgSrc={`data:image/png;base64,${panel.cross_section}`} 
+                    />
                 )}
                 
                 {panel.map_profile && (
-                    <ExpandableWrapper title="Proyección Espacial InSAR/Pozos" isImage>
-                        <img 
-                            src={`data:image/png;base64,${panel.map_profile}`} 
-                            alt="Proyección Espacial" 
-                            className="w-full h-full object-contain max-h-[300px]" 
-                        />
-                    </ExpandableWrapper>
+                    <ExpandableWrapper 
+                        title="Proyección Espacial InSAR/Pozos" 
+                        isImage 
+                        imgSrc={`data:image/png;base64,${panel.map_profile}`} 
+                    />
                 )}
                 <div>
                     <p className="text-[#F1C400] text-[9px] font-black tracking-widest uppercase mb-2">Pozos en el Buffer ({buffer}m)</p>
@@ -303,12 +315,12 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
                         {wells.map((w, i) => (
                             <div key={i} className="flex items-center justify-between p-2 bg-white/5 border border-white/10 rounded text-[9px]">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-2 h-2 rounded-full flex-shrink-0" title={getClass(w.pozo)} style={{ background: WELL_TYPE_COLORS[getClass(w.pozo)] }} />
-                                    <span className="text-[#F1C400] font-black truncate">{w.pozo?.name ?? `Pozo ${w.id}`}</span>
+                                    <div className="w-2 h-2 rounded-full flex-shrink-0" title={w.well_type} style={{ background: PYTHON_WELL_TYPE_COLORS[w.well_type] || '#888' }} />
+                                    <span className="text-[#F1C400] font-black truncate">{w.well_id}</span>
                                 </div>
                                 <span className="text-white/50">@ {w.dist_along.toFixed(0)} m</span>
                                 <span className={`font-bold ${(w.side ?? 0) >= 0 ? 'text-blue-300' : 'text-orange-300'}`}>
-                                    {(w.dist_off_signed ?? w.dist_off) >= 0 ? '+' : ''}{(w.dist_off_signed ?? w.dist_off).toFixed(0)} m
+                                    {(w.dist_off_signed ?? (w.side * w.dist_to_line)).toFixed(0)} m
                                 </span>
                             </div>
                         ))}
@@ -385,23 +397,26 @@ const PublicMap = () => {
                 })
             ]);
 
-            const { wells, line_length, buffer } = resPozos.data;
-            const { map_profile, cross_section, csv } = resImages.data || {};
+            const { line_length, buffer: resBuffer } = resPozos.data;
+            const { map_profile, cross_section, zip, wells_data } = resImages.data || {};
 
-            if (wells && wells.length > 0) {
+            // Priorizar los de wells_data de Python para que sean IDENTICOS a las imágenes
+            const wellsToDisplay = (wells_data && wells_data.length > 0) ? wells_data : resPozos.data.wells;
+
+            if (wellsToDisplay && wellsToDisplay.length > 0) {
                 panelCounterRef.current += 1;
                 const newId = `#${panelCounterRef.current}`;
                 const coordsForMap = latlngs.map(ll => [ll.lat, ll.lng]);
                 setPanels(prev => [...prev, { 
                     id: newId, 
-                    data: wells, 
+                    data: wellsToDisplay, 
                     lineLength: line_length, 
-                    buffer, 
+                    buffer: resBuffer, 
                     latlngs: coordsForMap, 
                     archived: false,
                     map_profile,
                     cross_section,
-                    csv
+                    zip
                 }]);
                 setFocusedId(newId);
             } else {
