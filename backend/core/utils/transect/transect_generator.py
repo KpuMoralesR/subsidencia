@@ -519,13 +519,17 @@ class TransectAnalyzer:
       3. Geological cross-section with full symbology
     """
 
-    def __init__(self, input_file: str, output_dir: str = 'transect_output'):
+    def __init__(self, input_file: str = None, output_dir: str = 'transect_output', well_points: list = None, df: pd.DataFrame = None):
         self.input_file = input_file
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
 
-        print(f"\nLoading: {input_file}")
-        self.well_points, self.df = parse_lth(input_file)
+        if input_file:
+            print(f"\nLoading: {input_file}")
+            self.well_points, self.df = parse_lth(input_file)
+        else:
+            self.well_points = well_points or []
+            self.df = df if df is not None else pd.DataFrame()
 
         # Set by set_transect_*
         self.transect_name  = None

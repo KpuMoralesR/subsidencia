@@ -14,6 +14,7 @@ import os
 import uuid
 import sys
 import base64
+import pandas as pd
 from rest_framework.views import APIView
 from django.conf import settings
 
@@ -181,10 +182,39 @@ class TransectImageView(APIView):
             
             import matplotlib
             matplotlib.use('Agg')
-            from transect_generator import TransectAnalyzer
+            from transect_generator import TransectAnalyzer, Point
+
+            # --- NUEVA LÓGICA: CONSULTA A BASE DE DATOS ---
+            # 1. Obtener todos los pozos con coordenadas válidas
+            qs_pozos = Pozo.objects.filter(x__isnull=False, y__isnull=False)
+            well_points = []
+            records = []
+            
+            for p in qs_pozos:
+                well_points.append(Point(
+                    x=p.x, y=p.y, well_id=p.name, well_type=p.well_type, elevation=p.elevation
+                ))
+                # 2. Obtener litología para el DataFrame
+                for l in p.capas.all():
+                    records.append({
+                        'well_name': p.name,
+                        'x': p.x,
+                        'y': p.y,
+                        'elevation': p.elevation,
+                        'depth': l.depth,
+                        'material': l.material,
+                        'well_type': p.well_type,
+                        'resistivity': l.resistivity,
+                        'velocity': l.velocity,
+                        'uge_class': l.uge_class
+                    })
+            
+            df_lith = pd.DataFrame(records)
+            # -----------------------------------------------
 
             os.makedirs(out_dir, exist_ok=True)
-            analyzer = TransectAnalyzer(lth_path, out_dir)
+            # Inyectar datos de la BD directamente al Analyzer
+            analyzer = TransectAnalyzer(well_points=well_points, df=df_lith, output_dir=out_dir)
             analyzer.set_transect_from_points((lat1, lon1), (lat2, lon2), coord_system='geo', name=f"TX_{unique_id}", buffer=buffer)
             # Run sin plots flotantes
             analyzer.run(show_labels=True, relative_depth=relative_depth)

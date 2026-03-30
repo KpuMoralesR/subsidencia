@@ -26,14 +26,13 @@ El backend es responsable de despachar la información geográfica y matemática
 # Entrar al directorio
 cd backend
 
-# Crear y activar entorno conda si no está creado
-conda create -n subsidencia python=3.10
+# Activar el entorno de Anaconda
 conda activate subsidencia
 
-# Instalar dependencias
+# Instalar dependencias si es necesario
 pip install -r requirements.txt
 
-# Aplicar las migraciones a la Base de Datos SQLite
+# Aplicar las migraciones a la Base de Datos PostgreSQL
 python manage.py migrate
 
 # Iniciar el servidor (correrá en http://127.0.0.1:8000)
@@ -56,37 +55,33 @@ npm run dev
 
 ---
 
-## 🗄️ ¿Cómo cargar los datos a la Base de Datos?
+## 🗄️ ¿Cómo cargar o actualizar datos?
 
-El sistema cuenta con un script automatizado que lee todos los archivos brutos de litología (`.lth` y `.csv`) proporcionados por los estudios geotécnicos, y los inyecta en la base de datos de Django para que el frontend pueda consumirlos instantáneamente.
+El sistema utiliza una base de datos **PostgreSQL** (con soporte para PostGIS) para almacenar todos los pozos y capas litológicas. Esto permite que el análisis de transectos sea instantáneo y escalable.
 
 ### Pasos para la importación:
 
-1. Asegúrate de tener la carpeta fuente de datos `PLATAFORMA` ubicada en la raíz del proyecto. El script buscará específicamente los archivos de registro dentro de esta ruta relativa:
-   `../PLATAFORMA/PLATAFORMA/well_data/raw_data/*.lth`
-
-2. Abre una terminal de comandos.
-
-3. Activa tu entorno virtual de conda:
+1. **Preparar archivos**: Asegúrate de tener los archivos `.lth` listos. 
+2. **Activar el entorno**:
    ```bash
    conda activate subsidencia
-   ```
-
-4. Navega a la carpeta del backend:
-   ```bash
    cd backend
    ```
-
-5. Ejecuta el comando personalizado de importación:
-   ```bash
-   python manage.py importar_datos
-   ```
+3. **Ejecutar el comando de importación**:
+   * Para un solo archivo:
+     ```bash
+     python manage.py importar_datos ruta/al/archivo.lth
+     ```
+   * Para una carpeta completa con múltiples archivos:
+     ```bash
+     python manage.py importar_datos ruta/a/la/carpeta/
+     ```
 
 ### ¿Qué hace este script?
-* Extrae las coordenadas **UTM (Zona 14N)** y elevaciones del pozo.
-* Escanea cada una de las capas litológicas bajo esa perforación para guardarlas de manera relacional.
-* Calcula variables geofísicas (Resistividad y Velocidad Sísmica).
-* Note: El backend (*serializers.py*) se encarga de convertir automáticamente en "tiempo real" estas coordenadas UTM a grados Geográficos (WGS84) que el mapa Web entiende.
+* **Sincronización Total**: Lee las coordenadas Lat/Lon y las convierte a UTM para cálculos geométricos precisos.
+* **Limpieza Automática**: Al importar un archivo, el script reemplaza cualquier versión previa de ese pozo para evitar duplicados.
+* **Normalización**: Convierte nulos de archivos brutos a formatos compatibles con JSON para evitar errores en la web.
+* **Centralización**: Una vez importados, el sistema deja de depender de archivos físicos y utiliza únicamente la Base de Datos para mayor velocidad.
 
 ---
 
