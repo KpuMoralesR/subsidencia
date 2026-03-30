@@ -10,6 +10,12 @@ from .serializers import (
 import math
 from .permissions import HasModuleAccess, RolePermission
 from pyproj import Transformer
+import os
+import uuid
+import sys
+import base64
+from rest_framework.views import APIView
+from django.conf import settings
 
 def project_point_to_segment(px, py, x1, y1, x2, y2):
     """
@@ -145,3 +151,76 @@ class PuntoInSARViewSet(viewsets.ModelViewSet):
     queryset = PuntoInSAR.objects.all()
     serializer_class = PuntoInSARSerializer
     permission_classes = [permissions.AllowAny]
+
+
+class TransectImageView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        points = request.data.get('points', [])
+        buffer = float(request.data.get('buffer', 1000))
+        relative_depth = request.data.get('relative_depth', False)
+
+        if len(points) < 2:
+            return Response({"error": "Need at least 2 points (lat, lng)"}, status=400)
+
+        # Usar los extremos para el transecto genérico (por ahora transect_generator soporta 2 puntos con --coords geo)
+        lat1, lon1 = points[0]['lat'], points[0]['lng']
+        lat2, lon2 = points[-1]['lat'], points[-1]['lng']
+
+        unique_id = str(uuid.uuid4())[:8]
+        out_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        lth_path = os.path.join(out_root, 'core', 'utils', 'transect', 'Totalok.lth')
+        out_dir = os.path.join(out_root, f'temp_transect_{unique_id}')
+
+        try:
+            # Añadir dinámicamente al sys al runtime aísla a Django de fallos top-level
+            transect_pkg_dir = os.path.join(out_root, 'core', 'utils', 'transect')
+            if transect_pkg_dir not in sys.path:
+                sys.path.append(transect_pkg_dir)
+            
+            import matplotlib
+            matplotlib.use('Agg')
+            from transect_generator import TransectAnalyzer
+
+            os.makedirs(out_dir, exist_ok=True)
+            analyzer = TransectAnalyzer(lth_path, out_dir)
+            analyzer.set_transect_from_points((lat1, lon1), (lat2, lon2), coord_system='geo', name=f"TX_{unique_id}", buffer=buffer)
+            # Run sin plots flotantes
+            analyzer.run(show_labels=True, relative_depth=relative_depth)
+
+            # Archivos generados
+            map_prof_name = f"TX_{unique_id}_buf{int(buffer)}m_map_profile.png"
+            cross_name = f"TX_{unique_id}_buf{int(buffer)}m_cross_section{'_reldepth' if relative_depth else ''}.png"
+            csv_name = f"TX_{unique_id}_buf{int(buffer)}m_wells.csv"
+
+            map_prof_path = os.path.join(out_dir, map_prof_name)
+            cross_path = os.path.join(out_dir, cross_name)
+            csv_path = os.path.join(out_dir, csv_name)
+
+            # Escribir el CSV original exacto que pide el usuario
+            if hasattr(analyzer, 'results') and analyzer.results is not None and not analyzer.results.empty:
+                analyzer.results.to_csv(csv_path, index=False)
+
+            response_data = {}
+            if os.path.exists(map_prof_path):
+                with open(map_prof_path, "rb") as f:
+                    response_data['map_profile'] = base64.b64encode(f.read()).decode('utf-8')
+            
+            if os.path.exists(cross_path):
+                with open(cross_path, "rb") as f:
+                    response_data['cross_section'] = base64.b64encode(f.read()).decode('utf-8')
+
+            if os.path.exists(csv_path):
+                with open(csv_path, "rb") as f:
+                    response_data['csv'] = base64.b64encode(f.read()).decode('utf-8')
+
+            import shutil
+            shutil.rmtree(out_dir, ignore_errors=True)
+
+            return Response(response_data, status=200)
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=500)

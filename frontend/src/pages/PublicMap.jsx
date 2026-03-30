@@ -10,7 +10,8 @@ import axios from 'axios';
 import {
     House, Map as MapIcon, Layers, ChartLine,
     UserLock, X, Pencil, Circle, BoxSelect, RotateCcw,
-    Satellite, MapPin, Clock, Settings, Globe, Database, Minus, Plus, Trash2
+    Satellite, MapPin, Clock, Settings, Globe, Database, Minus, Plus, Trash2,
+    Maximize2, Minimize2
 } from 'lucide-react';
 import { HillAvalanche } from '../components/UnamIcons';
 import LoginModal from '../components/LoginModal';
@@ -122,6 +123,51 @@ const createPath = (x, y, ri, ro, s, e) => {
     return ["M",sI.x,sI.y,"L",sO.x,sO.y,"A",ro,ro,0,la,0,eO.x,eO.y,"L",eI.x,eI.y,"A",ri,ri,0,la,1,sI.x,sI.y,"Z"].join(" ");
 };
 
+// ── Modal Envolvente Pantalla Completa ─────────────────────────────────────
+const ExpandableWrapper = ({ title, children, isImage = false, heightClass = "h-52" }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    if (isExpanded) {
+        return (
+            <div className="fixed inset-0 z-[99999] bg-[#001726]/95 flex flex-col p-8 backdrop-blur-md transition-all">
+                <div className="flex justify-between items-center mb-6 border-b border-[#F1C400]/20 pb-4">
+                    <h2 className="text-[#F1C400] text-2xl font-black tracking-[0.2em] uppercase flex items-center gap-3">
+                        {title}
+                    </h2>
+                    <button 
+                        onClick={() => setIsExpanded(false)} 
+                        className="p-3 bg-white/5 text-[#94a3b8] hover:text-white hover:bg-red-500/80 rounded-full transition-all flex items-center gap-2 text-[12px] font-bold"
+                        title="Cerrar vista completa"
+                    >
+                        <Minimize2 size={24} />
+                    </button>
+                </div>
+                <div className="flex-1 w-full bg-white rounded-xl shadow-[0_0_80px_rgba(241,196,0,0.1)] flex items-center justify-center p-6 overflow-hidden relative">
+                    {children}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-lg p-3 shadow-inner relative group border border-transparent hover:border-[#F1C400]/40 transition-all">
+            <div className="flex justify-between items-center mb-2 z-10 relative">
+                <p className="text-[#003B5C] text-[9px] font-black tracking-widest uppercase">{title}</p>
+                <button 
+                    onClick={() => setIsExpanded(true)}
+                    className="p-1.5 bg-[#F1C400] text-[#003B5C] rounded opacity-0 group-hover:opacity-100 transition-all hover:bg-[#003B5C] hover:text-[#F1C400] shadow-md"
+                    title={`Ver en pantalla completa`}
+                >
+                    <Maximize2 size={13} />
+                </button>
+            </div>
+            <div className={isImage ? "relative w-full h-auto flex flex-col items-center justify-center overflow-hidden" : `relative w-full ${heightClass}`}>
+                {children}
+            </div>
+        </div>
+    );
+};
+
 // ── Panel de análisis de transecto ────────────────────────────────────────
 const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => {
     const { id, data: wells, lineLength, buffer } = panel;
@@ -181,7 +227,7 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
             initial={{ opacity: 0, x: 60, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 80, scale: 0.9 }}
-            className="w-[560px] bg-[#003B5C] rounded-lg overflow-hidden shadow-2xl"
+            className="w-[560px] max-h-[85vh] flex flex-col bg-[#003B5C] rounded-lg overflow-hidden shadow-2xl"
             style={{
                 border: focused ? '2px solid #F1C400' : '1px solid rgba(241,196,0,0.3)',
                 boxShadow: focused ? '0 0 40px rgba(241,196,0,0.3)' : '0 8px 40px rgba(0,0,0,0.6)',
@@ -197,6 +243,16 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
                     <span className="text-[#94a3b8] text-[8px] ml-1">{wells.length} pozos · {(lineLength / 1000).toFixed(1)} km</span>
                 </div>
                 <div className="flex items-center gap-1">
+                    {panel.csv && (
+                        <a
+                            href={`data:text/csv;base64,${panel.csv}`}
+                            download={`transecto_${panel.id.replace('#', '')}_pozos.csv`}
+                            className="flex items-center gap-1 text-[#94a3b8] hover:text-[#10b981] px-2 py-1 rounded hover:bg-white/10 transition-all text-[8px] font-black tracking-wider uppercase"
+                            title="Descargar datos de pozos y offset en formato CSV"
+                        >
+                            <Database size={11} /> CSV
+                        </a>
+                    )}
                     <button
                         onClick={onArchive}
                         className="flex items-center gap-1 text-[#94a3b8] hover:text-[#F1C400] px-2 py-1 rounded hover:bg-white/10 transition-all text-[8px] font-black tracking-wider uppercase"
@@ -211,23 +267,38 @@ const TransectPanel = ({ panel, focused, containerRef, onClose, onArchive }) => 
             </div>
 
             {/* Cuerpo */}
-            <div className="p-4 space-y-4 bg-[#003B5C]">
-                <div className="bg-white rounded-lg p-3 shadow-inner">
-                    <p className="text-[#003B5C] text-[9px] font-black tracking-widest uppercase mb-2">Perfil de Offset Lateral</p>
-                    <div className="h-52">
-                        <Scatter data={{ datasets: [...offsetDatasets, ...refDatasets] }} options={scatterOptions} />
-                    </div>
-                </div>
+            <div className="p-4 space-y-4 bg-[#003B5C] overflow-y-auto flex-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#F1C400 #002a45' }}>
+                <ExpandableWrapper title="Perfil de Offset Lateral" heightClass="h-52">
+                    <Scatter data={{ datasets: [...offsetDatasets, ...refDatasets] }} options={scatterOptions} />
+                </ExpandableWrapper>
+                
                 {elevWells.length >= 2 && (
-                    <div className="bg-white rounded-lg p-3 shadow-inner">
-                        <p className="text-[#003B5C] text-[9px] font-black tracking-widest uppercase mb-2">Perfil de Elevación</p>
-                        <div className="h-44">
-                            <Line data={elevData} options={elevOptions} />
-                        </div>
-                    </div>
+                    <ExpandableWrapper title="Perfil de Elevación" heightClass="h-44">
+                        <Line data={elevData} options={elevOptions} />
+                    </ExpandableWrapper>
+                )}
+                
+                {panel.cross_section && (
+                    <ExpandableWrapper title="Corte Geológico (Sección)" isImage>
+                        <img 
+                            src={`data:image/png;base64,${panel.cross_section}`} 
+                            alt="Corte Geológico Python" 
+                            className="w-full h-full object-contain max-h-[400px]" 
+                        />
+                    </ExpandableWrapper>
+                )}
+                
+                {panel.map_profile && (
+                    <ExpandableWrapper title="Proyección Espacial InSAR/Pozos" isImage>
+                        <img 
+                            src={`data:image/png;base64,${panel.map_profile}`} 
+                            alt="Proyección Espacial" 
+                            className="w-full h-full object-contain max-h-[300px]" 
+                        />
+                    </ExpandableWrapper>
                 )}
                 <div>
-                    <p className="text-[#F1C400] text-[9px] font-black tracking-widest uppercase mb-2">Pozos en el Buffer</p>
+                    <p className="text-[#F1C400] text-[9px] font-black tracking-widest uppercase mb-2">Pozos en el Buffer ({buffer}m)</p>
                     <div className="max-h-32 overflow-y-auto space-y-1 pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#F1C400 #002a45' }}>
                         {wells.map((w, i) => (
                             <div key={i} className="flex items-center justify-between p-2 bg-white/5 border border-white/10 rounded text-[9px]">
@@ -300,18 +371,41 @@ const PublicMap = () => {
         const end   = latlngs[latlngs.length - 1];
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:8000/api/pozos/transecto/', {
-                params: { x1: start.lng, y1: start.lat, x2: end.lng, y2: end.lat, buffer: 800 }
-            });
-            const { wells, line_length, buffer } = res.data;
+            const [resPozos, resImages] = await Promise.all([
+                axios.get('http://localhost:8000/api/pozos/transecto/', {
+                    params: { x1: start.lng, y1: start.lat, x2: end.lng, y2: end.lat, buffer: 1000 }
+                }),
+                axios.post('http://localhost:8000/api/transecto-geologico/', {
+                    points: latlngs.map(ll => ({ lat: ll.lat, lng: ll.lng })),
+                    buffer: 1000,
+                    relative_depth: false
+                }).catch(err => {
+                    console.error("Error generating python images:", err);
+                    return { data: {} };
+                })
+            ]);
+
+            const { wells, line_length, buffer } = resPozos.data;
+            const { map_profile, cross_section, csv } = resImages.data || {};
+
             if (wells && wells.length > 0) {
                 panelCounterRef.current += 1;
                 const newId = `#${panelCounterRef.current}`;
                 const coordsForMap = latlngs.map(ll => [ll.lat, ll.lng]);
-                setPanels(prev => [...prev, { id: newId, data: wells, lineLength: line_length, buffer, latlngs: coordsForMap, archived: false }]);
+                setPanels(prev => [...prev, { 
+                    id: newId, 
+                    data: wells, 
+                    lineLength: line_length, 
+                    buffer, 
+                    latlngs: coordsForMap, 
+                    archived: false,
+                    map_profile,
+                    cross_section,
+                    csv
+                }]);
                 setFocusedId(newId);
             } else {
-                alert('No se encontraron pozos en un radio de 800 m. Traza la línea sobre la zona central donde están los marcadores.');
+                alert('No se encontraron pozos en un radio de 1000 m. Traza la línea sobre la zona central donde están los marcadores.');
             }
         } catch (err) {
             console.error(err);
